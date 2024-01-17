@@ -54,7 +54,9 @@ def my_task(
     #  * s3://archive-bucket/my_group.zarr
     # 2. Access to s3 zarr likely requires additional env variables - TBD
     # 3. Do we prefer to keep zarr_path split into something+component?
-    #    I guess we don't.
+    #    I guess we don't - but this would limit flexibility of parallelizing
+    #    on something which is not path-defined (e.g time sequences,
+    #    sometime in the future).
 
     # output_zarr_path
     # Full path to an output zarr group.
