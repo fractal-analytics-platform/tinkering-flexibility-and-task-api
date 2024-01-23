@@ -9,7 +9,6 @@ def init_task(
 
 
 def run_parallel_task_in_fractal_server():
-
     # (1) Mock database objects for a single parallel task
     IMAGES = [
         dict(path="plate.zarr/A/01/0"),
@@ -18,7 +17,7 @@ def run_parallel_task_in_fractal_server():
     task = dict(
         function=task_function,  # mock of `task.command`
         parallelization_level="image",
-        )
+    )
     input_dataset = dict(
         paths=["/somewhere"],
         images=IMAGES,

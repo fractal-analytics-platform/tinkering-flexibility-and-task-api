@@ -9,12 +9,11 @@ def init_task(
 
 
 def run_parallel_task_in_fractal_server():
-
     # (1) Mock database objects for a single parallel task
     task = dict(
         function=task_function,  # mock of `task.command`
         parallelization_level="image",
-        )
+    )
     input_dataset = dict(
         paths=["/somewhere"],
         metadata=dict(
