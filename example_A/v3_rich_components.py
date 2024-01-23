@@ -1,35 +1,34 @@
+from typing import Any
 from task_function import task_function
 
 
 def init_task(
-    parallelization_level: str,
-    components: dict[str, list[str]],
+    images: list[dict[str, Any]],
 ) -> list[str]:
-    return components[parallelization_level]
+    return [image["path"] for image in images]
 
 
 def run_parallel_task_in_fractal_server():
 
     # (1) Mock database objects for a single parallel task
+    IMAGES = [
+        dict(path="plate.zarr/A/01/0"),
+        dict(path="plate.zarr/A/02/0"),
+    ]
     task = dict(
         function=task_function,  # mock of `task.command`
         parallelization_level="image",
         )
     input_dataset = dict(
         paths=["/somewhere"],
-        components=dict(
-            plate=["plate.zarr"],
-            well=["plate.zarr/A/01", "plate.zarr/A/02"],
-            image=["plate.zarr/A/01/0", "plate.zarr/A/02/0"],
-        ),
+        images=IMAGES,
         metadata=dict(),
     )
     output_dataset = dict(paths=["/somewhere_else"])
 
     # (2) Construct parallelization list
     component_list = init_task(
-        parallelization_level=task["parallelization_level"],
-        components=input_dataset["components"],
+        images=input_dataset["images"],
     )
 
     # (3) Run task
