@@ -1,6 +1,5 @@
 from typing import Any
 from task_function import task_function_new
-import itertools
 
 
 def init_task(
