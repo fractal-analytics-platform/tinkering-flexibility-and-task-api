@@ -1,4 +1,4 @@
-from task_function import task_function
+from task_function import task_function_legacy
 
 
 def init_task(
@@ -11,7 +11,7 @@ def init_task(
 def run_parallel_task_in_fractal_server():
     # (1) Mock database objects for a single parallel task
     task = dict(
-        function=task_function,  # mock of `task.command`
+        function=task_function_legacy,  # mock of `task.command`
         parallelization_level="image",
     )
     input_dataset = dict(

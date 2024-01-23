@@ -2,7 +2,7 @@ from typing import Any
 from typing import Optional
 
 
-def task_function(
+def task_function_legacy(
     *,
     input_paths: list[str],
     output_path: str,
