@@ -18,7 +18,6 @@ def init_task(
         if skip:
             continue
 
-        # Parallelize over TCZ
         image_group_path = image["path"]  # noqa
         list_arguments.append(dict(zarr_path=image_group_path))
 
