@@ -1,6 +1,13 @@
 from task_function import task_function
 
 
+def init_task(
+    parallelization_level: str,
+    components: dict[str, list[str]],
+) -> list[str]:
+    return components[parallelization_level]
+
+
 def run_parallel_task_in_fractal_server():
 
     # (1) Mock database objects for a single parallel task
@@ -21,8 +28,10 @@ def run_parallel_task_in_fractal_server():
     output_dataset = dict(paths=["/somewhere_else"])
 
     # (2) Construct parallelization list
-    input_dataset_components = input_dataset["metadata"]["components"]
-    component_list = input_dataset_components[task["parallelization_level"]]
+    component_list = init_task(
+        parallelization_level=task["parallelization_level"],
+        components=input_dataset["metadata"]["components"],
+    )
 
     # (3) Run task
     for component in component_list:

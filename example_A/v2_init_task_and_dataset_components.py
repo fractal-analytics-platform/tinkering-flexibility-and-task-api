@@ -1,11 +1,11 @@
-from .task_function import task_function
+from task_function import task_function
 
 
 def init_task(
     parallelization_level: str,
-    metadata_components: dict[str, list[str]],
+    components: dict[str, list[str]],
 ) -> list[str]:
-    return metadata_components[parallelization_level]
+    return components[parallelization_level]
 
 
 def run_parallel_task_in_fractal_server():
@@ -17,20 +17,19 @@ def run_parallel_task_in_fractal_server():
         )
     input_dataset = dict(
         paths=["/somewhere"],
-        metadata=dict(
-            components=dict(
-                plate=["plate.zarr"],
-                well=["plate.zarr/A/01", "plate.zarr/A/02"],
-                image=["plate.zarr/A/01/0", "plate.zarr/A/02/0"],
-            )
+        components=dict(
+            plate=["plate.zarr"],
+            well=["plate.zarr/A/01", "plate.zarr/A/02"],
+            image=["plate.zarr/A/01/0", "plate.zarr/A/02/0"],
         ),
+        metadata=dict(),
     )
     output_dataset = dict(paths=["/somewhere_else"])
 
     # (2) Construct parallelization list
     component_list = init_task(
         parallelization_level=task["parallelization_level"],
-        metadata_components=input_dataset["metadata"]["components"],
+        components=input_dataset["components"],
     )
 
     # (3) Run task
