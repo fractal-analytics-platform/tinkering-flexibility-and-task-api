@@ -72,12 +72,29 @@ def apply_workflow(
 
             # TODO: clean-up parallel metadata merge
             _new_images = []
+            _new_filters = None
+            debug(outs)
             for _out in outs:
                 for new_image in _out.get("new_images", []):
                     _new_images.append(new_image)
+
+                current_filters = _out.get("new_filters", None)
+                if current_filters is None:
+                    pass
+                else:
+                    if _new_filters is None:
+                        _new_filters = current_filters
+                    else:
+                        if _new_filters != current_filters:
+                            raise ValueError(
+                                f"{current_filters=} but {_new_filters=}"
+                            )
+
             out = {}
             if _new_images:
                 out["new_images"] = _new_images
+            if _new_filters:
+                out["new_filters"] = _new_filters
 
         # Update dataset metadata / images
         for image in out.get("new_images", []):
@@ -96,7 +113,12 @@ def apply_workflow(
             tmp_dataset.buffer = out["buffer"]
         # Update dataset metadata / default filters
         if out.get("new_filters", None) is not None:
-            pass  # TODO
+            new_default_filters = deepcopy(tmp_dataset.default_filters)
+            if new_default_filters is None:
+                new_default_filters = {}
+            for key, value in out["new_filters"].items():
+                new_default_filters[key] = value
+            tmp_dataset.default_filters = new_default_filters
         # Update dataset metadata / history
         tmp_dataset.history.append(task_function.__name__)
 

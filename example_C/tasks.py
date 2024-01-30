@@ -96,7 +96,8 @@ def illumination_correction(
     out = dict(
         new_images=[
             dict(path=new_component, illumination_correction=True),
-        ]
+        ],
+        new_filters=dict(illumination_correction=True),
     )
     print(f"[illumination_correction] {out=}")
     print("[illumination_correction] END")
