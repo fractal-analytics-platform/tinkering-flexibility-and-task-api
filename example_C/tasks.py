@@ -55,7 +55,7 @@ def yokogawa_to_zarr(
     Args:
         root_dir: Absolute path to parent folder for plate-level Zarr.
         component:
-        Relative image path within `root_dir`, e.g.`"plate.zarr/A/01/0"".
+            Relative image path within `root_dir`, e.g.`"plate.zarr/A/01/0"".
     """
 
     print("[yokogawa_to_zarr] START")
