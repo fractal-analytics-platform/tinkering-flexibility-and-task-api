@@ -30,14 +30,14 @@ if __name__ == "__main__":
     ds = Dataset(
         root_dir="/tmp",
         images=[
-            dict(path="/tmp/plate.zarr/A/01/0"),
-            dict(path="/tmp/plate.zarr/A/02/0"),
+            dict(path="plate.zarr/A/01/0"),
+            dict(path="plate.zarr/A/02/0"),
         ],
         default_filters={},
         buffer=dict(
             raw_images_sources={
-                "plate.zarr/A/01/0": "/tmp/images/image_A01.tif",
-                "plate.zarr/A/02/0": "/tmp/images/image_A02.tif",
+                "plate.zarr/A/01/0": "/tmp/input_images/figure_A01.tif",
+                "plate.zarr/A/02/0": "/tmp/input_images/figure_A01.tif",
             }
         ),
         history=["create-ome-zarr"],
