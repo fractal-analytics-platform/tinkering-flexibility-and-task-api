@@ -1,13 +1,13 @@
+from pathlib import Path
 from typing import Any
 from typing import Optional
-from pathlib import Path
 
 
 def create_ome_zarr(
     image_folder: str,
     root_dir: str,
 ) -> dict:
-    
+
     # Based on images in image_folder, create plate OME-Zarr
     Path(root_dir).mkdir(parents=True)
     plate_zarr_name = "my_plate.zarr"
@@ -27,13 +27,14 @@ def create_ome_zarr(
         ],
         buffer=dict(
             image_raw_paths={
-                f"{plate_zarr_name}/A/01/0": f"{image_folder}/figure_A01.tiff",
-                f"{plate_zarr_name}/A/02/0": f"{image_folder}/figure_A02.tiff",
+                f"{plate_zarr_name}/A/01/0": f"{image_folder}/figure_A01.tif",
+                f"{plate_zarr_name}/A/02/0": f"{image_folder}/figure_A02.tif",
             },
         ),
     )
     print("[create_ome_zarr] END")
     return out
+
 
 def yokogawa_to_zarr(
     root_dir: str,
@@ -54,11 +55,7 @@ def illumination_correction(
     metadata: dict[str, Any],
     output_path: Optional[str] = None,
 ):
-    print(
-        "Now running task with:\n"
-        f"  {zarr_path=}\n"
-        f"  {output_path=}\n"
-    )
+    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
 
 
 def copy_ome_zarr(
@@ -67,11 +64,8 @@ def copy_ome_zarr(
     metadata: dict[str, Any],
     output_path: Optional[str] = None,
 ):
-    print(
-        "Now running task with:\n"
-        f"  {zarr_path=}\n"
-        f"  {output_path=}\n"
-    )
+    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
+
 
 def maximum_intensity_projection(
     *,
@@ -79,11 +73,8 @@ def maximum_intensity_projection(
     metadata: dict[str, Any],
     output_path: Optional[str] = None,
 ):
-    print(
-        "Now running task with:\n"
-        f"  {zarr_path=}\n"
-        f"  {output_path=}\n"
-    )
+    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
+
 
 def cellpose_segmentation(
     *,
@@ -91,8 +82,4 @@ def cellpose_segmentation(
     metadata: dict[str, Any],
     output_path: Optional[str] = None,
 ):
-    print(
-        "Now running task with:\n"
-        f"  {zarr_path=}\n"
-        f"  {output_path=}\n"
-    )
+    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
