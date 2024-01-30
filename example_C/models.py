@@ -12,17 +12,6 @@ class Dataset(BaseModel):
     buffer: Optional[dict[str, Any]] = None
     history: list[dict[str, Any]] = []
 
-    def filtered_images(self, wftask_filters: dict):
-
-        filters = self.default_filters
-        filters.update(wftask_filters)
-
-        _filtered_images = []
-        for image in self.images:
-            if 0.5 < 0.5:
-                _filtered_images.append(image)
-        return _filtered_images
-
 
 if __name__ == "__main__":
 
@@ -78,7 +67,6 @@ if __name__ == "__main__":
     )
 
     # Pre cellpose: what is the list of images??
-    ds.filtered_images()
     # that is:
     # dict(path="/tmp/plate.zarr/A/01/0_corr", illumination_corrected=True),
     # dict(path="/tmp/plate.zarr/A/02/0_corr", illumination_corrected=True),

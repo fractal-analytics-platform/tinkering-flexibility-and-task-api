@@ -7,11 +7,8 @@ from typing import Optional
 
 from devtools import debug
 from models import Dataset
-from tasks import cellpose_segmentation
-from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
 from tasks import illumination_correction
-from tasks import maximum_intensity_projection
 from tasks import yokogawa_to_zarr
 
 
@@ -21,7 +18,8 @@ def _filter_image_list(
 ) -> list[dict[str, Any]]:
     filtered_images = []
     if filters is None:
-        filters = {}
+        return images
+    debug(filters)
     for image in images:
         include_image = False
         for key, value in filters.items():
@@ -48,8 +46,13 @@ def apply_workflow(
 
         debug(f"NOW RUN {task_function.__name__}")
 
-        # Parallel task
-        if tasks[wftask["task_id"]].get("meta", {}).get("parallel", False):
+        # Run task
+        task = tasks[wftask["task_id"]]
+        is_parallel = task.get("meta", {}).get("parallel", False)
+        debug(is_parallel)
+        if not is_parallel:
+            out = task_function(**function_args)
+        else:
             # FIXME: filtering
             outs = []
             for image in _filter_image_list(
@@ -66,12 +69,35 @@ def apply_workflow(
                 outs.append(out)
             # Reset buffer after using it
             tmp_dataset.buffer = None
-            # TODO: merge outs
-        else:
-            out = task_function(**function_args)
-            for image in out["images"]:
-                tmp_dataset.images.append(image)
+
+            # TODO: clean-up parallel metadata merge
+            _new_images = []
+            for _out in outs:
+                for new_image in _out.get("new_images", []):
+                    _new_images.append(new_image)
+            out = {}
+            if _new_images:
+                out["new_images"] = _new_images
+
+        # Update dataset metadata / images
+        for image in out.get("new_images", []):
+            try:
+                overlap = next(
+                    _image
+                    for _image in tmp_dataset.images
+                    if _image["path"] == image["path"]
+                )
+                raise ValueError(f"Found {overlap=}")
+            except StopIteration:
+                pass
+            tmp_dataset.images.append(image)
+        # Update dataset metadata / buffer
+        if out.get("buffer", None) is not None:
             tmp_dataset.buffer = out["buffer"]
+        # Update dataset metadata / default filters
+        if out.get("new_filters", None) is not None:
+            pass  # TODO
+        # Update dataset metadata / history
         tmp_dataset.history.append(task_function.__name__)
 
         debug(f"AFTER RUNNING {task_function.__name__}", tmp_dataset)
@@ -89,15 +115,7 @@ if __name__ == "__main__":
         ),
         3: dict(
             function=illumination_correction,
-        ),
-        4: dict(
-            function=copy_ome_zarr,
-        ),
-        5: dict(
-            function=maximum_intensity_projection,
-        ),
-        6: dict(
-            function=cellpose_segmentation,
+            meta=dict(parallel=True),
         ),
     }
 
@@ -108,6 +126,7 @@ if __name__ == "__main__":
     wf_task_list = [
         dict(task_id=1, args=dict(image_dir="/tmp/input_images")),
         dict(task_id=2, args={}),
+        dict(task_id=3, args={}),
     ]
 
     # Clear root directory of dataset 7

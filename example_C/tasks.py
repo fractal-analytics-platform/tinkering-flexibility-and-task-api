@@ -19,18 +19,25 @@ def create_ome_zarr(
     Path(root_dir).mkdir(parents=True)
     plate_zarr_name = "my_plate.zarr"
     zarr_path = (Path(root_dir) / plate_zarr_name).as_posix()
-    with open(zarr_path, "w") as f:
-        f.write("This is an OME-Zarr container.\n")
 
     print("[create_ome_zarr] START")
     print(f"[create_ome_zarr] {image_dir=}")
     print(f"[create_ome_zarr] {root_dir=}")
     print(f"[create_ome_zarr] {zarr_path=}")
 
+    # Create (fake) OME-Zarr folder on disk
+    Path(zarr_path).mkdir()
+
+    # Create well/image OME-Zarr folders on disk
+    image_relative_paths = ["A/01/0", "A/02/0"]
+    for image_relative_path in image_relative_paths:
+        (Path(zarr_path) / image_relative_path).mkdir(parents=True)
+
+    # Prepare output metadata
     out = dict(
-        images=[
-            dict(path=f"{plate_zarr_name}/A/01/0"),
-            dict(path=f"{plate_zarr_name}/A/02/0"),
+        new_images=[
+            dict(path=f"{plate_zarr_name}/{image_relative_path}")
+            for image_relative_path in image_relative_paths
         ],
         buffer=dict(
             image_raw_paths={
@@ -61,8 +68,14 @@ def yokogawa_to_zarr(
     print("[yokogawa_to_zarr] START")
     print(f"[yokogawa_to_zarr] {root_dir=}")
     print(f"[yokogawa_to_zarr] {component=}")
-    print(f"[yokogawa_to_zarr] {buffer.keys()=}")
-    print(f"[yokogawa_to_zarr] {buffer['image_raw_paths']=}")
+
+    source_data = buffer["image_raw_paths"][component]
+    print(f"[yokogawa_to_zarr] {source_data=}")
+
+    # Write fake image data into image Zarr group
+    with (Path(root_dir) / component / "data").open("w") as f:
+        f.write(f"Source data: {source_data}\n")
+
     print("[yokogawa_to_zarr] END")
     return {}
 
@@ -71,41 +84,20 @@ def illumination_correction(
     *,
     root_dir: str,
     component: str,
-    buffer: dict[str, Any],
-    output_path: Optional[str] = None,
+    buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
-    print("[yokogawa_to_zarr] START")
-    print(f"[yokogawa_to_zarr] {root_dir=}")
-    print(f"[yokogawa_to_zarr] {component=}")
-    print("[yokogawa_to_zarr] END")
-    return {}
-    # print("Now running task with:\n" f"
-    # {zarr_path=}\n" f"  {output_path=}\n")
+    print("[illumination_correction] START")
+    print(f"[illumination_correction] {root_dir=}")
+    print(f"[illumination_correction] {component=}")
 
+    new_component = f"{component}_corr"
+    print(f"[illumination_correction] {new_component=}")
 
-def copy_ome_zarr(
-    *,
-    zarr_path: str,
-    metadata: dict[str, Any],
-    output_path: Optional[str] = None,
-):
-    print("Now running task with:")
-    print(f"{zarr_path=}\n" f"  {output_path=}\n")
-
-
-def maximum_intensity_projection(
-    *,
-    zarr_path: str,
-    metadata: dict[str, Any],
-    output_path: Optional[str] = None,
-):
-    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
-
-
-def cellpose_segmentation(
-    *,
-    zarr_path: str,
-    metadata: dict[str, Any],
-    output_path: Optional[str] = None,
-):
-    print("Now running task with:\n" f"  {zarr_path=}\n" f"  {output_path=}\n")
+    out = dict(
+        new_images=[
+            dict(path=new_component, illumination_correction=True),
+        ]
+    )
+    print(f"[illumination_correction] {out=}")
+    print("[illumination_correction] END")
+    return out
