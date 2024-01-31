@@ -8,6 +8,7 @@ from typing import Optional
 
 from models import Dataset
 from tasks import cellpose_segmentation
+from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
 from tasks import illumination_correction
 from tasks import yokogawa_to_zarr
@@ -66,16 +67,20 @@ def apply_workflow(
         # Run task
         task = tasks[wftask["task_id"]]
         is_parallel = task.get("meta", {}).get("parallel", False)
-
-        print(
-            f"NOW RUN {task_function.__name__} (is it parallel? {is_parallel})"
+        combine_components = task.get("meta", {}).get(
+            "combine_components", False
         )
 
-        if not is_parallel:
+        print(
+            f"NOW RUN {task_function.__name__}\n"
+            f"    Is it parallel? {is_parallel}\n"
+            f"    Combine components? {combine_components}\n"
+        )
+
+        if (not is_parallel) and (not combine_components):
             task_output = task_function(**function_args)
             print(f"Task output:\n{pjson(task_output)}")
         else:
-            parallel_task_outs = []
             # TODO: include wftask-specific filters
             current_image_list = _filter_image_list(
                 tmp_dataset.images,
@@ -83,47 +88,69 @@ def apply_workflow(
             )
             print(f"Current filters:     {pjson(tmp_dataset.default_filters)}")
             print(f"Filtered image list: {pjson(current_image_list)}")
-            for image in current_image_list:
-                tmp_image = deepcopy(image)
-                image_path = tmp_image.pop("path")
+
+            if combine_components:
+                components = []
+                image_metas = []
+                for image in current_image_list:
+                    tmp_image = deepcopy(image)
+                    components.append(tmp_image.pop("path"))
+                    image_metas.append(tmp_image)
+
                 function_args.update(
                     dict(
-                        component=image_path,
+                        components=components,
                         buffer=tmp_dataset.buffer,
-                        image_meta=tmp_image,
+                        image_metas=image_metas,
                     )
                 )
                 task_output = task_function(**function_args)
-                parallel_task_outs.append(task_output)
-            # Reset buffer after using it
-            tmp_dataset.buffer = None
+                print(f"Task output:\n{pjson(task_output)}")
+            else:
+                parallel_task_outs = []
+                for image in current_image_list:
+                    tmp_image = deepcopy(image)
+                    image_path = tmp_image.pop("path")
+                    function_args.update(
+                        dict(
+                            component=image_path,
+                            buffer=tmp_dataset.buffer,
+                            image_meta=tmp_image,
+                        )
+                    )
+                    task_output = task_function(**function_args)
+                    parallel_task_outs.append(task_output)
+                # Reset buffer after using it
+                tmp_dataset.buffer = None
 
-            # TODO: clean-up parallel metadata merge
-            _new_images = []
-            _new_filters = None
-            for _out in parallel_task_outs:
-                for new_image in _out.get("new_images", []):
-                    _new_images.append(new_image)
+                # TODO: clean-up parallel metadata merge
+                _new_images = []
+                _new_filters = None
+                for _out in parallel_task_outs:
+                    for new_image in _out.get("new_images", []):
+                        _new_images.append(new_image)
 
-                current_filters = _out.get("new_filters", None)
-                if current_filters is None:
-                    pass
-                else:
-                    if _new_filters is None:
-                        _new_filters = current_filters
+                    current_filters = _out.get("new_filters", None)
+                    if current_filters is None:
+                        pass
                     else:
-                        if _new_filters != current_filters:
-                            raise ValueError(
-                                f"{current_filters=} but {_new_filters=}"
-                            )
+                        if _new_filters is None:
+                            _new_filters = current_filters
+                        else:
+                            if _new_filters != current_filters:
+                                raise ValueError(
+                                    f"{current_filters=} but {_new_filters=}"
+                                )
 
-            task_output = {}
-            if _new_images:
-                task_output["new_images"] = _new_images
-            if _new_filters:
-                task_output["new_filters"] = _new_filters
+                task_output = {}
+                if _new_images:
+                    task_output["new_images"] = _new_images
+                if _new_filters:
+                    task_output["new_filters"] = _new_filters
 
-            print(f"Merged task output:\n{json.dumps(task_output, indent=2)}")
+                print(
+                    f"Merged task output:\n{json.dumps(task_output, indent=2)}"
+                )
 
         # Update dataset metadata / images
         for image in task_output.get("new_images", []):
@@ -136,6 +163,7 @@ def apply_workflow(
                 raise ValueError(f"Found {overlap=}")
             except StopIteration:
                 pass
+            print(f"Add {image} to list")
             tmp_dataset.images.append(image)
         # Update dataset metadata / buffer
         if task_output.get("buffer", None) is not None:
@@ -174,6 +202,10 @@ if __name__ == "__main__":
             function=cellpose_segmentation,
             meta=dict(parallel=True),
         ),
+        5: dict(
+            function=copy_ome_zarr,
+            meta=dict(combine_components=True),
+        ),
     }
 
     # Define single dataset
@@ -185,6 +217,7 @@ if __name__ == "__main__":
         dict(task_id=2, args={}),
         dict(task_id=3, args={}),
         dict(task_id=4, args={}),
+        dict(task_id=5, args={"suffix": "mip"}),
     ]
 
     # Clear root directory of dataset 7

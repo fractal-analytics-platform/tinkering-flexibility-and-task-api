@@ -143,3 +143,60 @@ def cellpose_segmentation(
     print(f"[cellpose_segmentation] {out=}")
     print("[cellpose_segmentation] END")
     return out
+
+
+def copy_ome_zarr(
+    *,
+    root_dir: str,
+    components: list[str],
+    suffix: str,
+    image_metas: Optional[dict[str, Any]] = None,
+    buffer: Optional[dict[str, Any]] = None,
+) -> dict:
+
+    shared_plate = set(component.split("/")[0] for component in components)
+    if len(shared_plate) > 1:
+        raise ValueError
+    shared_plate = list(shared_plate)[0]
+
+    # TODO: check that image_metas are all identical
+
+    print("[copy_ome_zarr] START")
+    print(f"[copy_ome_zarr] {root_dir=}")
+    print(f"[copy_ome_zarr] Identified {shared_plate=}")
+
+    assert shared_plate.endswith(".zarr")
+    new_plate_zarr_name = shared_plate.strip(".zarr") + f"_{suffix}.zarr"
+    print(f"[copy_ome_zarr] {new_plate_zarr_name=}")
+
+    # Based on images in image_folder, create plate OME-Zarr
+    zarr_path = (Path(root_dir) / new_plate_zarr_name).as_posix()
+
+    print(f"[copy_ome_zarr] {zarr_path=}")
+
+    # Create (fake) OME-Zarr folder on disk
+    Path(zarr_path).mkdir()
+
+    # Create well/image OME-Zarr for the new copy
+    image_relative_paths = ["A/01/0", "A/02/0"]
+    for image_relative_path in image_relative_paths:
+        (Path(zarr_path) / image_relative_path).mkdir(parents=True)
+
+    # Prepare output metadata
+    image_meta = image_metas[0]
+    image_meta.pop("plate")
+    out = dict(
+        new_images=[
+            dict(
+                path=f"{new_plate_zarr_name}/{image_relative_path}",
+                plate=new_plate_zarr_name,
+                **image_meta,
+            )
+            for image_relative_path in image_relative_paths
+        ],
+        new_filters=dict(
+            plate=new_plate_zarr_name,
+        ),
+    )
+    print("[copy_ome_zarr] END")
+    return out
