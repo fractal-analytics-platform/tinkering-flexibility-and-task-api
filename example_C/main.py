@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 from copy import copy
@@ -5,27 +6,42 @@ from copy import deepcopy
 from typing import Any
 from typing import Optional
 
-from devtools import debug
 from models import Dataset
+from tasks import cellpose_segmentation
 from tasks import create_ome_zarr
 from tasks import illumination_correction
 from tasks import yokogawa_to_zarr
+from termcolor import cprint
+
+
+def pjson(x: dict) -> str:
+    """
+    Naive JSON pretty-print.
+    """
+    return json.dumps(x, indent=2)
 
 
 def _filter_image_list(
     images: list[dict[str, Any]],
     filters: Optional[dict[str, Any]] = None,
+    debug_mode: bool = False,
 ) -> list[dict[str, Any]]:
+    def print(x):
+        return cprint(x, "red")
+
     filtered_images = []
     if filters is None:
         return images
-    debug(filters)
     for image in images:
-        include_image = False
+        include_image = True
         for key, value in filters.items():
+            if debug_mode:
+                print(key, value, image.get(key))
             if image.get(key, False) != value:
                 include_image = False
                 break
+        if debug_mode:
+            print(image, include_image)
         if include_image:
             filtered_images.append(copy(image))
     return filtered_images
@@ -36,6 +52,9 @@ def apply_workflow(
     tasks: dict[str, dict],
     dataset: Dataset,
 ):
+    def print(x):
+        return cprint(x, "magenta")
+
     # Run task 0
     tmp_dataset = deepcopy(dataset)
 
@@ -44,37 +63,45 @@ def apply_workflow(
         function_args = wftask["args"]
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
-        debug(f"NOW RUN {task_function.__name__}")
-
         # Run task
         task = tasks[wftask["task_id"]]
         is_parallel = task.get("meta", {}).get("parallel", False)
-        debug(is_parallel)
+
+        print(
+            f"NOW RUN {task_function.__name__} (is it parallel? {is_parallel})"
+        )
+
         if not is_parallel:
-            out = task_function(**function_args)
+            task_output = task_function(**function_args)
+            print(f"Task output:\n{pjson(task_output)}")
         else:
-            # FIXME: filtering
-            outs = []
-            for image in _filter_image_list(
+            parallel_task_outs = []
+            # TODO: include wftask-specific filters
+            current_image_list = _filter_image_list(
                 tmp_dataset.images,
-                # tmp_dataset + wftask filters
-            ):
+                filters=tmp_dataset.default_filters,
+            )
+            print(f"Current filters:     {pjson(tmp_dataset.default_filters)}")
+            print(f"Filtered image list: {pjson(current_image_list)}")
+            for image in current_image_list:
+                tmp_image = deepcopy(image)
+                image_path = tmp_image.pop("path")
                 function_args.update(
                     dict(
-                        component=image["path"],
+                        component=image_path,
                         buffer=tmp_dataset.buffer,
+                        image_meta=tmp_image,
                     )
                 )
-                out = task_function(**function_args)
-                outs.append(out)
+                task_output = task_function(**function_args)
+                parallel_task_outs.append(task_output)
             # Reset buffer after using it
             tmp_dataset.buffer = None
 
             # TODO: clean-up parallel metadata merge
             _new_images = []
             _new_filters = None
-            debug(outs)
-            for _out in outs:
+            for _out in parallel_task_outs:
                 for new_image in _out.get("new_images", []):
                     _new_images.append(new_image)
 
@@ -90,14 +117,16 @@ def apply_workflow(
                                 f"{current_filters=} but {_new_filters=}"
                             )
 
-            out = {}
+            task_output = {}
             if _new_images:
-                out["new_images"] = _new_images
+                task_output["new_images"] = _new_images
             if _new_filters:
-                out["new_filters"] = _new_filters
+                task_output["new_filters"] = _new_filters
+
+            print(f"Merged task output:\n{json.dumps(task_output, indent=2)}")
 
         # Update dataset metadata / images
-        for image in out.get("new_images", []):
+        for image in task_output.get("new_images", []):
             try:
                 overlap = next(
                     _image
@@ -109,20 +138,22 @@ def apply_workflow(
                 pass
             tmp_dataset.images.append(image)
         # Update dataset metadata / buffer
-        if out.get("buffer", None) is not None:
-            tmp_dataset.buffer = out["buffer"]
+        if task_output.get("buffer", None) is not None:
+            tmp_dataset.buffer = task_output["buffer"]
         # Update dataset metadata / default filters
-        if out.get("new_filters", None) is not None:
+        if task_output.get("new_filters", None) is not None:
             new_default_filters = deepcopy(tmp_dataset.default_filters)
             if new_default_filters is None:
                 new_default_filters = {}
-            for key, value in out["new_filters"].items():
+            for key, value in task_output["new_filters"].items():
                 new_default_filters[key] = value
             tmp_dataset.default_filters = new_default_filters
         # Update dataset metadata / history
         tmp_dataset.history.append(task_function.__name__)
 
-        debug(f"AFTER RUNNING {task_function.__name__}", tmp_dataset)
+        print(f"AFTER RUNNING {task_function.__name__}:")
+        print(pjson(tmp_dataset.dict()))
+        print("\n" + "-" * 88 + "\n")
 
 
 if __name__ == "__main__":
@@ -139,6 +170,10 @@ if __name__ == "__main__":
             function=illumination_correction,
             meta=dict(parallel=True),
         ),
+        4: dict(
+            function=cellpose_segmentation,
+            meta=dict(parallel=True),
+        ),
     }
 
     # Define single dataset
@@ -149,6 +184,7 @@ if __name__ == "__main__":
         dict(task_id=1, args=dict(image_dir="/tmp/input_images")),
         dict(task_id=2, args={}),
         dict(task_id=3, args={}),
+        dict(task_id=4, args={}),
     ]
 
     # Clear root directory of dataset 7
