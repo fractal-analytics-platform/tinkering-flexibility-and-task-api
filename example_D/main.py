@@ -94,7 +94,7 @@ def apply_workflow(
 
                 function_args.update(
                     dict(
-                        components=components,
+                        paths=components,
                         buffer=tmp_dataset.buffer,
                         image_metas=image_metas,
                     )
@@ -108,7 +108,7 @@ def apply_workflow(
                     image_path = tmp_image.pop("path")
                     function_args.update(
                         dict(
-                            component=image_path,
+                            path=image_path,
                             buffer=tmp_dataset.buffer,
                             image_meta=tmp_image,
                         )

@@ -68,7 +68,7 @@ def create_ome_zarr(
 def yokogawa_to_zarr(
     *,
     root_dir: str,
-    component: str,
+    path: str,
     buffer: dict[str, Any],
     image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
@@ -77,19 +77,19 @@ def yokogawa_to_zarr(
 
     Args:
         root_dir: Absolute path to parent folder for plate-level Zarr.
-        component:
+        path:
             Relative image path within `root_dir`, e.g.`"plate.zarr/A/01/0"".
     """
 
     print("[yokogawa_to_zarr] START")
     print(f"[yokogawa_to_zarr] {root_dir=}")
-    print(f"[yokogawa_to_zarr] {component=}")
+    print(f"[yokogawa_to_zarr] {path=}")
 
-    source_data = buffer["image_raw_paths"][component]
+    source_data = buffer["image_raw_paths"][path]
     print(f"[yokogawa_to_zarr] {source_data=}")
 
     # Write fake image data into image Zarr group
-    with (Path(root_dir) / component / "data").open("w") as f:
+    with (Path(root_dir) / path / "data").open("w") as f:
         f.write(f"Source data: {source_data}\n")
 
     print("[yokogawa_to_zarr] END")
@@ -99,16 +99,16 @@ def yokogawa_to_zarr(
 def illumination_correction(
     *,
     root_dir: str,
-    component: str,
+    path: str,
     buffer: Optional[dict[str, Any]] = None,
     image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
     print("[illumination_correction] START")
     print(f"[illumination_correction] {root_dir=}")
-    print(f"[illumination_correction] {component=}")
+    print(f"[illumination_correction] {path=}")
 
-    new_component = f"{component}_corr"
-    print(f"[illumination_correction] {new_component=}")
+    new_path = f"{path}_corr"
+    print(f"[illumination_correction] {new_path=}")
 
     if image_meta is None:
         image_meta = {}
@@ -116,7 +116,7 @@ def illumination_correction(
     out = dict(
         new_images=[
             dict(
-                path=new_component,
+                path=new_path,
                 illumination_correction=True,
                 **image_meta,
             ),
@@ -131,13 +131,13 @@ def illumination_correction(
 def cellpose_segmentation(
     *,
     root_dir: str,
-    component: str,
+    path: str,
     buffer: dict[str, Any],
     image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
     print("[cellpose_segmentation] START")
     print(f"[cellpose_segmentation] {root_dir=}")
-    print(f"[cellpose_segmentation] {component=}")
+    print(f"[cellpose_segmentation] {path=}")
 
     out = dict()
     print(f"[cellpose_segmentation] {out=}")
@@ -148,13 +148,13 @@ def cellpose_segmentation(
 def copy_ome_zarr(
     *,
     root_dir: str,
-    components: list[str],
+    paths: list[str],
     suffix: str,
     image_metas: Optional[dict[str, Any]] = None,
     buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
 
-    shared_plate = set(component.split("/")[0] for component in components)
+    shared_plate = set(path.split("/")[0] for path in paths)
     if len(shared_plate) > 1:
         raise ValueError
     shared_plate = list(shared_plate)[0]
