@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import Any
 from typing import Optional
 
-from db import get_task
 from db import get_workflow
 from models import Dataset
 from models import WorkflowTask
@@ -57,14 +56,13 @@ def apply_workflow(
     tmp_dataset = deepcopy(dataset)
 
     for wftask in wf_task_list:
-        task = get_task(wftask.task_id)
-        task_function = task.function
+        task_function = wftask.task.function
         function_args = wftask.args
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         # Run task
-        is_parallel = task.is_parallel
-        combine_components = task.meta.get("combine_components", False)
+        is_parallel = wftask.task.is_parallel
+        combine_components = wftask.task.meta.get("combine_components", False)
 
         print(
             f"NOW RUN {task_function.__name__}\n"

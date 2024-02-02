@@ -34,6 +34,7 @@ class WorkflowTask(BaseModel):
     task_id: int
     args: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
+    task: Task
 
 
 class Workflow(BaseModel):
