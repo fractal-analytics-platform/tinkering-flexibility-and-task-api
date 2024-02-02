@@ -6,14 +6,9 @@ from copy import deepcopy
 from typing import Any
 from typing import Optional
 
+from db import get_task
 from models import Dataset
-from models import Task
 from models import WorkflowTask
-from tasks import cellpose_segmentation
-from tasks import copy_ome_zarr
-from tasks import create_ome_zarr
-from tasks import illumination_correction
-from tasks import yokogawa_to_zarr
 from termcolor import cprint
 
 
@@ -61,7 +56,7 @@ def apply_workflow(
     tmp_dataset = deepcopy(dataset)
 
     for wftask in wf_task_list:
-        task = _get_task_from_db(wftask.task_id)
+        task = get_task(wftask.task_id)
         task_function = task.function
         function_args = wftask.args
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
@@ -181,18 +176,6 @@ def apply_workflow(
         print(f"AFTER RUNNING {task_function.__name__}:")
         print(pjson(tmp_dataset.dict()))
         print("\n" + "-" * 88 + "\n")
-
-
-def _get_task_from_db(id: int) -> Task:
-    TASKS = [
-        Task(id=1, function=create_ome_zarr),
-        Task(id=2, function=yokogawa_to_zarr, meta=dict(parallel=True)),
-        Task(id=3, function=illumination_correction, meta=dict(parallel=True)),
-        Task(id=4, function=cellpose_segmentation, meta=dict(parallel=True)),
-        Task(id=5, function=copy_ome_zarr, meta=dict(combine_components=True)),
-    ]
-    task = next(t for t in TASKS if t.id == id)
-    return task
 
 
 if __name__ == "__main__":
