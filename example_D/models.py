@@ -1,6 +1,7 @@
 from typing import Any
 from typing import Callable
 from typing import Optional
+from typing import Union
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -19,6 +20,9 @@ class Task(BaseModel):
     id: int
     function: Callable
     meta: dict[str, Any] = Field(default_factory=dict)
+    new_default_filters: dict[str, Union[str, bool, int, float, None]] = Field(
+        default_factory=dict
+    )
 
     @property
     def is_parallel(self):
@@ -30,3 +34,8 @@ class WorkflowTask(BaseModel):
     task_id: int
     args: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
+
+
+class Workflow(BaseModel):
+    id: int
+    task_list: list[WorkflowTask] = Field(default_factory=list)

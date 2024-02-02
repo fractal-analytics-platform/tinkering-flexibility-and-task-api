@@ -1,4 +1,6 @@
 from models import Task
+from models import Workflow
+from models import WorkflowTask
 from tasks import cellpose_segmentation
 from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
@@ -16,3 +18,17 @@ def get_task(id: int) -> Task:
     ]
     task = next(t for t in TASKS if t.id == id)
     return task
+
+
+def get_workflow() -> Workflow:
+    wf_task_list = [
+        WorkflowTask(
+            id=1, task_id=1, args=dict(image_dir="/tmp/input_images")
+        ),
+        WorkflowTask(id=2, task_id=2, args={}),
+        WorkflowTask(id=3, task_id=3, args={}),
+        WorkflowTask(id=4, task_id=4, args={}),
+        WorkflowTask(id=5, task_id=5, args={"suffix": "mip"}),
+    ]
+    wf = Workflow(id=1, task_list=wf_task_list)
+    return wf

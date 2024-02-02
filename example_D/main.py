@@ -7,6 +7,7 @@ from typing import Any
 from typing import Optional
 
 from db import get_task
+from db import get_workflow
 from models import Dataset
 from models import WorkflowTask
 from termcolor import cprint
@@ -180,22 +181,12 @@ def apply_workflow(
 
 if __name__ == "__main__":
 
-    # Define single dataset
+    # Define single dataset, and reset its root_dir
     dataset = Dataset(id=123, root_dir="/tmp/somewhere/")
-
-    # Define workflow
-    wf_task_list = [
-        WorkflowTask(
-            id=1, task_id=1, args=dict(image_dir="/tmp/input_images")
-        ),
-        WorkflowTask(id=2, task_id=2, args={}),
-        WorkflowTask(id=3, task_id=3, args={}),
-        WorkflowTask(id=4, task_id=4, args={}),
-        WorkflowTask(id=5, task_id=5, args={"suffix": "mip"}),
-    ]
-
-    # Clear root directory of dataset 7
     if os.path.isdir(dataset.root_dir):
         shutil.rmtree(dataset.root_dir)
 
-    apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+    # Get a standard workflow
+    workflow = get_workflow()
+
+    apply_workflow(wf_task_list=workflow.task_list, dataset=dataset)
