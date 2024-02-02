@@ -10,7 +10,9 @@ from models import Dataset
 from models import Task
 from models import WorkflowTask
 from termcolor import cprint
-from workflows import WF1
+from workflows import WF2 as WF
+
+# from workflows import WF1 as WF
 
 
 def pjson(x: dict) -> str:
@@ -224,5 +226,4 @@ if __name__ == "__main__":
     if os.path.isdir(dataset.root_dir):
         shutil.rmtree(dataset.root_dir)
 
-    print(WF1)
-    apply_workflow(wf_task_list=WF1.task_list, dataset=dataset)
+    apply_workflow(wf_task_list=WF.task_list, dataset=dataset)
