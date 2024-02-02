@@ -3,9 +3,8 @@ import shutil
 
 from models import Dataset
 from runner import apply_workflow
-from workflows import WF2 as WF
+from workflows import WF1 as WF
 
-# from workflows import WF1 as WF
 
 if __name__ == "__main__":
 

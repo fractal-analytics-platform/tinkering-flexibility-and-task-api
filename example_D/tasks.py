@@ -14,7 +14,6 @@ def create_ome_zarr(
     root_dir: str,
     image_dir: str,
     buffer: Optional[dict[str, Any]] = None,
-    image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
     """
     TBD
@@ -70,7 +69,6 @@ def yokogawa_to_zarr(
     root_dir: str,
     path: str,
     buffer: dict[str, Any],
-    image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
     """
     TBD
@@ -101,16 +99,12 @@ def illumination_correction(
     root_dir: str,
     path: str,
     buffer: Optional[dict[str, Any]] = None,
-    image_meta: Optional[dict[str, Any]] = None,
     overwrite_input: bool = False,
 ) -> dict:
     print("[illumination_correction] START")
     print(f"[illumination_correction] {root_dir=}")
     print(f"[illumination_correction] {path=}")
     print(f"[illumination_correction] {overwrite_input=}")
-
-    if image_meta is None:
-        image_meta = {}
 
     if overwrite_input:
         out = dict(edited_paths=[path])
@@ -131,7 +125,6 @@ def cellpose_segmentation(
     root_dir: str,
     path: str,
     buffer: dict[str, Any],
-    image_meta: Optional[dict[str, Any]] = None,
 ) -> dict:
     print("[cellpose_segmentation] START")
     print(f"[cellpose_segmentation] {root_dir=}")
@@ -148,7 +141,6 @@ def copy_ome_zarr(
     root_dir: str,
     paths: list[str],
     suffix: str,
-    image_metas: Optional[dict[str, Any]] = None,
     buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
 
@@ -156,8 +148,6 @@ def copy_ome_zarr(
     if len(shared_plate) > 1:
         raise ValueError
     shared_plate = list(shared_plate)[0]
-
-    # TODO: check that image_metas are all identical
 
     print("[copy_ome_zarr] START")
     print(f"[copy_ome_zarr] {root_dir=}")
@@ -181,14 +171,11 @@ def copy_ome_zarr(
         (Path(zarr_path) / image_relative_path).mkdir(parents=True)
 
     # Prepare output metadata
-    image_meta = image_metas[0]
-    image_meta.pop("plate")
     out = dict(
         new_images=[
             dict(
                 path=f"{new_plate_zarr_name}/{image_relative_path}",
                 plate=new_plate_zarr_name,
-                **image_meta,
             )
             for image_relative_path in image_relative_paths
         ],

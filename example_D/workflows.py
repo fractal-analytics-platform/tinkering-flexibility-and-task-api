@@ -66,7 +66,7 @@ WF3 = Workflow(
             id=3,
             task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
             args=dict(overwrite_input=True),
-            filters=dict(well="A_02"),
+            filters=dict(well="A_01"),
         ),
     ],
 )

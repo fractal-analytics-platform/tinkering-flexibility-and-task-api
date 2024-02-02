@@ -5,6 +5,7 @@ from typing import Any
 from typing import Optional
 
 from models import Dataset
+from models import FilterSet
 from models import Task
 from models import WorkflowTask
 from termcolor import cprint
@@ -19,7 +20,7 @@ def pjson(x: dict) -> str:
 
 def _filter_image_list(
     images: list[dict[str, Any]],
-    filters: Optional[dict[str, Any]] = None,
+    filters: Optional[FilterSet] = None,
     debug_mode: bool = False,
 ) -> list[dict[str, Any]]:
     def print(x):
@@ -61,13 +62,10 @@ def _run_parallel_task(
 
     task_outputs = []
     for image in current_image_list:
-        tmp_image = deepcopy(image)
-        image_path = tmp_image.pop("path")
         function_args.update(
             dict(
-                path=image_path,
+                path=image["path"],
                 buffer=_dataset.buffer,
-                image_meta=tmp_image,
             )
         )
         task_output = task.function(**function_args)
@@ -119,18 +117,11 @@ def _run_combined_task(
     function_args: dict[str, Any],
     _dataset: Dataset,
 ) -> dict[str, Any]:
-    components = []
-    image_metas = []
-    for image in current_image_list:
-        tmp_image = deepcopy(image)
-        components.append(tmp_image.pop("path"))
-        image_metas.append(tmp_image)
-
+    paths = [image["path"] for image in current_image_list]
     function_args.update(
         dict(
-            paths=components,
+            paths=paths,
             buffer=_dataset.buffer,
-            image_metas=image_metas,
         )
     )
     task_output = task.function(**function_args)
@@ -161,13 +152,21 @@ def apply_workflow(
             task_output = _run_standard_task(task, function_args)
             images_to_process = []
         else:
-            # TODO: include wftask-specific filters
+
+            print(
+                f"Default filters:      {pjson(tmp_dataset.default_filters)}"
+            )
+            print(f"WorkflowTask filters: {pjson(wftask.filters)}")
+
+            current_filters = copy(tmp_dataset.default_filters)
+            current_filters.update(wftask.filters)
+            print(f"Current filters:      {pjson(current_filters)}")
+
             images_to_process = _filter_image_list(
                 tmp_dataset.images,
-                filters=tmp_dataset.default_filters,
+                filters=current_filters,
             )
-            print(f"Current filters:     {pjson(tmp_dataset.default_filters)}")
-            print(f"Filtered image list: {pjson(images_to_process)}")
+            print(f"Filtered image list:  {pjson(images_to_process)}")
 
             if task.task_type == "combine_images":
                 task_output = _run_combined_task(
