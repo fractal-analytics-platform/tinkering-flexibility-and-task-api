@@ -1,5 +1,6 @@
 from typing import Any
 from typing import Callable
+from typing import Literal
 from typing import Optional
 from typing import Union
 
@@ -24,9 +25,11 @@ class Task(BaseModel):
         default_factory=dict
     )
 
+    task_type: Literal["standard", "parallel", "combine_images"] = "standard"
+
     @property
-    def is_parallel(self):
-        return self.meta.get("parallel", False)
+    def name(self) -> str:
+        return self.function.__name__
 
 
 class WorkflowTask(BaseModel):
