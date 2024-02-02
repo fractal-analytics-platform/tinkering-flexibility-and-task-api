@@ -185,6 +185,16 @@ def apply_workflow(
             else:
                 raise ValueError(f"Invalid {task.task_type=}.")
 
+        # Decorate new images with source-image attributes
+        new_images = task_output.get("new_images", [])
+        for ind, new_image in enumerate(new_images):
+            pass
+            # FIXME: missing
+            # source_image[new_image["path"]] = ??
+            # actual_new_image = copy(source_image)
+            # actual_new_image.update(new_image)
+            # new_images[ind] = actual_new_image
+
         # Add filters to processed images
         new_images = task_output.get("new_images", [])
         processed_images_paths = [
