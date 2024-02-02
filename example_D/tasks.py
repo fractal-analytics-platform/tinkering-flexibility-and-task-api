@@ -118,7 +118,7 @@ def illumination_correction(
             dict(
                 path=new_component,
                 illumination_correction=True,
-                # **image_meta,
+                **image_meta,
             ),
         ],
         new_filters=dict(illumination_correction=True),
