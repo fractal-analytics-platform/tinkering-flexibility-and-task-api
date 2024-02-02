@@ -51,6 +51,27 @@ WF2 = Workflow(
 )
 
 
+WF3 = Workflow(
+    id=1,
+    task_list=[
+        WorkflowTask(
+            id=1,
+            task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+            args=dict(image_dir="/tmp/input_images"),
+        ),
+        WorkflowTask(
+            id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}
+        ),
+        WorkflowTask(
+            id=3,
+            task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
+            args=dict(overwrite_input=True),
+            filters=dict(well="A_02"),
+        ),
+    ],
+)
+
+
 if __name__ == "__main__":
     from devtools import debug
 

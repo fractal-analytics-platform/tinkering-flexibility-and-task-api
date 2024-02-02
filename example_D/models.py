@@ -14,11 +14,15 @@ from tasks import illumination_correction
 from tasks import yokogawa_to_zarr
 
 
+SingleFilter = Union[str, bool, int, None]
+FilterSet = dict[str, SingleFilter]
+
+
 class Dataset(BaseModel):
     id: Optional[int] = None
     root_dir: str
     images: list[dict[str, Any]] = []
-    default_filters: dict[str, bool] = Field(default_factory=dict)
+    default_filters: FilterSet = Field(default_factory=dict)
     buffer: Optional[dict[str, Any]] = None
     history: list[dict[str, Any]] = []
 
@@ -27,9 +31,7 @@ class Task(BaseModel):
     id: int
     function: Callable
     meta: dict[str, Any] = Field(default_factory=dict)
-    new_default_filters: dict[str, Union[str, bool, int, float, None]] = Field(
-        default_factory=dict
-    )
+    new_default_filters: FilterSet = Field(default_factory=dict)
 
     task_type: Literal["standard", "parallel", "combine_images"] = "standard"
 
@@ -67,6 +69,7 @@ class WorkflowTask(BaseModel):
     args: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     task: Optional[Task] = None
+    filters: FilterSet = Field(default_factory=dict)
 
     @root_validator()
     def set_task(cls, values):
