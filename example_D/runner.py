@@ -199,11 +199,16 @@ def apply_workflow(
                     updated_image[key] = value
                 tmp_dataset.images[ind] = updated_image
 
+        # Update dataset metadata / default filters
+        new_filters = tmp_dataset.default_filters
+        new_filters.update(task.new_default_filters)
+        new_filters.update(task_output.get("new_filters", {}))
+
         # Process new_images, if any
         new_images = task_output.get("new_images", [])
         for ind, image in enumerate(new_images):
             new_image = deepcopy(image)
-            for key, value in task.new_default_filters.items():
+            for key, value in new_filters.items():
                 new_image[key] = value
             new_images[ind] = new_image
 
@@ -221,15 +226,12 @@ def apply_workflow(
             print(f"Add {image} to list")
             tmp_dataset.images.append(image)
 
+        # Update dataset metadata / filters
+        tmp_dataset.default_filters = new_filters
+
         # Update dataset metadata / buffer
         if task_output.get("buffer", None) is not None:
             tmp_dataset.buffer = task_output["buffer"]
-
-        # Update dataset metadata / default filters
-        new_filters = tmp_dataset.default_filters
-        new_filters.update(task.new_default_filters)
-        new_filters.update(task_output.get("new_filters", {}))
-        tmp_dataset.default_filters = new_filters
 
         # Update dataset metadata / history
         tmp_dataset.history.append(task_function.__name__)
