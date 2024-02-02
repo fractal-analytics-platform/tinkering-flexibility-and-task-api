@@ -8,6 +8,7 @@ from typing import Optional
 
 from db import get_workflow
 from models import Dataset
+from models import Task
 from models import WorkflowTask
 from termcolor import cprint
 
@@ -45,6 +46,90 @@ def _filter_image_list(
     return filtered_images
 
 
+def _run_standard_task(
+    task: Task,
+    function_args: dict[str, Any],
+) -> dict[str, Any]:
+    task_output = task.function(**function_args)
+    print(f"Task output:\n{pjson(task_output)}")
+    return task_output
+
+
+def _run_parallel_task(
+    task: Task,
+    current_image_list: list[dict[str, Any]],
+    function_args: dict[str, Any],
+    _dataset: Dataset,
+) -> dict[str, Any]:
+
+    parallel_task_outs = []
+    for image in current_image_list:
+        tmp_image = deepcopy(image)
+        image_path = tmp_image.pop("path")
+        function_args.update(
+            dict(
+                path=image_path,
+                buffer=_dataset.buffer,
+                image_meta=tmp_image,
+            )
+        )
+        task_output = task.function(**function_args)
+        parallel_task_outs.append(task_output)
+    # Reset buffer after using it
+    _dataset.buffer = None
+
+    # TODO: clean-up parallel metadata merge
+    _new_images = []
+    _new_filters = None
+    for _out in parallel_task_outs:
+        for new_image in _out.get("new_images", []):
+            _new_images.append(new_image)
+
+        current_filters = _out.get("new_filters", None)
+        if current_filters is None:
+            pass
+        else:
+            if _new_filters is None:
+                _new_filters = current_filters
+            else:
+                if _new_filters != current_filters:
+                    raise ValueError(f"{current_filters=} but {_new_filters=}")
+
+    task_output = {}
+    if _new_images:
+        task_output["new_images"] = _new_images
+    if _new_filters:
+        task_output["new_filters"] = _new_filters
+
+    print(f"Merged task output:\n{json.dumps(task_output, indent=2)}")
+    return task_output
+
+
+def _run_combined_task(
+    task: Task,
+    current_image_list: list[dict[str, Any]],
+    function_args: dict[str, Any],
+    _dataset: Dataset,
+) -> dict[str, Any]:
+    components = []
+    image_metas = []
+    for image in current_image_list:
+        tmp_image = deepcopy(image)
+        components.append(tmp_image.pop("path"))
+        image_metas.append(tmp_image)
+
+    function_args.update(
+        dict(
+            paths=components,
+            buffer=_dataset.buffer,
+            image_metas=image_metas,
+        )
+    )
+    task_output = task.function(**function_args)
+    print(f"Task output:\n{pjson(task_output)}")
+    return task_output
+
+
 def apply_workflow(
     wf_task_list: list[WorkflowTask],
     dataset: Dataset,
@@ -56,23 +141,16 @@ def apply_workflow(
     tmp_dataset = deepcopy(dataset)
 
     for wftask in wf_task_list:
-        task_function = wftask.task.function
+        task = wftask.task
+        task_function = task.function
         function_args = wftask.args
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         # Run task
-        is_parallel = wftask.task.is_parallel
-        combine_components = wftask.task.meta.get("combine_components", False)
+        print(f"NOW RUN {task.name}\n" f"    Task type: {task.task_type}\n")
 
-        print(
-            f"NOW RUN {task_function.__name__}\n"
-            f"    Is it parallel? {is_parallel}\n"
-            f"    Combine components? {combine_components}\n"
-        )
-
-        if (not is_parallel) and (not combine_components):
-            task_output = task_function(**function_args)
-            print(f"Task output:\n{pjson(task_output)}")
+        if task.task_type == "standard":
+            task_output = _run_standard_task(task, function_args)
         else:
             # TODO: include wftask-specific filters
             current_image_list = _filter_image_list(
@@ -82,68 +160,22 @@ def apply_workflow(
             print(f"Current filters:     {pjson(tmp_dataset.default_filters)}")
             print(f"Filtered image list: {pjson(current_image_list)}")
 
-            if combine_components:
-                components = []
-                image_metas = []
-                for image in current_image_list:
-                    tmp_image = deepcopy(image)
-                    components.append(tmp_image.pop("path"))
-                    image_metas.append(tmp_image)
-
-                function_args.update(
-                    dict(
-                        paths=components,
-                        buffer=tmp_dataset.buffer,
-                        image_metas=image_metas,
-                    )
+            if task.task_type == "combine_images":
+                task_output = _run_combined_task(
+                    task=task,
+                    current_image_list=current_image_list,
+                    function_args=function_args,
+                    _dataset=tmp_dataset,
                 )
-                task_output = task_function(**function_args)
-                print(f"Task output:\n{pjson(task_output)}")
+            elif task.task_type == "parallel":
+                task_output = _run_parallel_task(
+                    task=task,
+                    current_image_list=current_image_list,
+                    function_args=function_args,
+                    _dataset=tmp_dataset,
+                )
             else:
-                parallel_task_outs = []
-                for image in current_image_list:
-                    tmp_image = deepcopy(image)
-                    image_path = tmp_image.pop("path")
-                    function_args.update(
-                        dict(
-                            path=image_path,
-                            buffer=tmp_dataset.buffer,
-                            image_meta=tmp_image,
-                        )
-                    )
-                    task_output = task_function(**function_args)
-                    parallel_task_outs.append(task_output)
-                # Reset buffer after using it
-                tmp_dataset.buffer = None
-
-                # TODO: clean-up parallel metadata merge
-                _new_images = []
-                _new_filters = None
-                for _out in parallel_task_outs:
-                    for new_image in _out.get("new_images", []):
-                        _new_images.append(new_image)
-
-                    current_filters = _out.get("new_filters", None)
-                    if current_filters is None:
-                        pass
-                    else:
-                        if _new_filters is None:
-                            _new_filters = current_filters
-                        else:
-                            if _new_filters != current_filters:
-                                raise ValueError(
-                                    f"{current_filters=} but {_new_filters=}"
-                                )
-
-                task_output = {}
-                if _new_images:
-                    task_output["new_images"] = _new_images
-                if _new_filters:
-                    task_output["new_filters"] = _new_filters
-
-                print(
-                    f"Merged task output:\n{json.dumps(task_output, indent=2)}"
-                )
+                raise ValueError(f"Invalid {task.task_type=}.")
 
         # Update dataset metadata / images
         for image in task_output.get("new_images", []):
