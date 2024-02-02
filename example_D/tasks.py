@@ -117,11 +117,9 @@ def illumination_correction(
         new_images=[
             dict(
                 path=new_path,
-                illumination_correction=True,
                 **image_meta,
             ),
         ],
-        new_filters=dict(illumination_correction=True),
     )
     print(f"[illumination_correction] {out=}")
     print("[illumination_correction] END")

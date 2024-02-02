@@ -6,6 +6,12 @@ from typing import Union
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import root_validator
+from tasks import cellpose_segmentation
+from tasks import copy_ome_zarr
+from tasks import create_ome_zarr
+from tasks import illumination_correction
+from tasks import yokogawa_to_zarr
 
 
 class Dataset(BaseModel):
@@ -32,12 +38,41 @@ class Task(BaseModel):
         return self.function.__name__
 
 
+DB_TASKS = [
+    Task(id=1, function=create_ome_zarr, task_type="standard"),
+    Task(id=2, function=yokogawa_to_zarr, task_type="parallel"),
+    Task(
+        id=3,
+        function=illumination_correction,
+        task_type="parallel",
+        new_default_filters=dict(illumination_correction=True),
+    ),
+    Task(id=4, function=cellpose_segmentation, task_type="parallel"),
+    Task(id=5, function=copy_ome_zarr, task_type="combine_images"),
+]
+
+
+TASK_NAME_TO_TASK = {}
+TASK_ID_TO_TASK = {}
+TASK_NAME_TO_TASK_ID = {}
+for _task in DB_TASKS:
+    TASK_NAME_TO_TASK_ID[_task.name] = _task.id
+    TASK_NAME_TO_TASK[_task.name] = _task
+    TASK_ID_TO_TASK[_task.id] = _task
+
+
 class WorkflowTask(BaseModel):
     id: int
     task_id: int
     args: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
-    task: Task
+    task: Optional[Task] = None
+
+    @root_validator()
+    def set_task(cls, values):
+        if values["task"] is None:
+            values["task"] = TASK_ID_TO_TASK[values["task_id"]]
+        return values
 
 
 class Workflow(BaseModel):

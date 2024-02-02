@@ -6,11 +6,11 @@ from copy import deepcopy
 from typing import Any
 from typing import Optional
 
-from db import get_workflow
 from models import Dataset
 from models import Task
 from models import WorkflowTask
 from termcolor import cprint
+from workflows import WF1
 
 
 def pjson(x: dict) -> str:
@@ -177,8 +177,16 @@ def apply_workflow(
             else:
                 raise ValueError(f"Invalid {task.task_type=}.")
 
+        # Process new_images, if any
+        new_images = task_output.get("new_images", [])
+        for ind, image in enumerate(new_images):
+            new_image = deepcopy(image)
+            for key, value in task.new_default_filters.items():
+                new_image[key] = value
+            new_images[ind] = new_image
+
         # Update dataset metadata / images
-        for image in task_output.get("new_images", []):
+        for image in new_images:
             try:
                 overlap = next(
                     _image
@@ -190,17 +198,17 @@ def apply_workflow(
                 pass
             print(f"Add {image} to list")
             tmp_dataset.images.append(image)
+
         # Update dataset metadata / buffer
         if task_output.get("buffer", None) is not None:
             tmp_dataset.buffer = task_output["buffer"]
+
         # Update dataset metadata / default filters
-        if task_output.get("new_filters", None) is not None:
-            new_default_filters = deepcopy(tmp_dataset.default_filters)
-            if new_default_filters is None:
-                new_default_filters = {}
-            for key, value in task_output["new_filters"].items():
-                new_default_filters[key] = value
-            tmp_dataset.default_filters = new_default_filters
+        new_filters = tmp_dataset.default_filters
+        new_filters.update(task.new_default_filters)
+        new_filters.update(task_output.get("new_filters", {}))
+        tmp_dataset.default_filters = new_filters
+
         # Update dataset metadata / history
         tmp_dataset.history.append(task_function.__name__)
 
@@ -216,7 +224,5 @@ if __name__ == "__main__":
     if os.path.isdir(dataset.root_dir):
         shutil.rmtree(dataset.root_dir)
 
-    # Get a standard workflow
-    workflow = get_workflow()
-
-    apply_workflow(wf_task_list=workflow.task_list, dataset=dataset)
+    print(WF1)
+    apply_workflow(wf_task_list=WF1.task_list, dataset=dataset)
