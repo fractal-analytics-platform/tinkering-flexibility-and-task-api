@@ -11,7 +11,7 @@ class Dataset(BaseModel):
     id: Optional[int] = None
     root_dir: str
     images: list[dict[str, Any]] = []
-    default_filters: Optional[dict[str, bool]] = None
+    default_filters: dict[str, bool] = Field(default_factory=dict)
     buffer: Optional[dict[str, Any]] = None
     history: list[dict[str, Any]] = []
 
