@@ -45,7 +45,6 @@ def create_ome_zarr(
         new_images=[
             dict(
                 path=f"{plate_zarr_name}/{image_relative_path}",
-                plate=plate_zarr_name,
                 well="_".join(image_relative_path.split("/")[:2]),
             )
             for image_relative_path in image_relative_paths
@@ -112,9 +111,7 @@ def illumination_correction(
     else:
         new_path = f"{path}_corr"
         print(f"[illumination_correction] {new_path=}")
-        out = dict(
-            new_images=[dict(path=new_path)],
-        )
+        out = dict(new_images=[dict(path=new_path)])
     print(f"[illumination_correction] {out=}")
     print("[illumination_correction] END")
     return out
@@ -173,15 +170,10 @@ def copy_ome_zarr(
     # Prepare output metadata
     out = dict(
         new_images=[
-            dict(
-                path=f"{new_plate_zarr_name}/{image_relative_path}",
-                plate=new_plate_zarr_name,
-            )
+            dict(path=f"{new_plate_zarr_name}/{image_relative_path}")
             for image_relative_path in image_relative_paths
         ],
-        new_filters=dict(
-            plate=new_plate_zarr_name,
-        ),
+        new_filters=dict(plate=new_plate_zarr_name),
     )
     print("[copy_ome_zarr] END")
     return out
