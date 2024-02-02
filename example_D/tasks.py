@@ -119,12 +119,7 @@ def illumination_correction(
         new_path = f"{path}_corr"
         print(f"[illumination_correction] {new_path=}")
         out = dict(
-            new_images=[
-                dict(
-                    path=new_path,
-                    **image_meta,
-                ),
-            ],
+            new_images=[dict(path=new_path)],
         )
     print(f"[illumination_correction] {out=}")
     print("[illumination_correction] END")
