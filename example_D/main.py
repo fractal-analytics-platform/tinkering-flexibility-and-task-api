@@ -8,6 +8,7 @@ from typing import Optional
 
 from models import Dataset
 from models import Task
+from models import WorkflowTask
 from tasks import cellpose_segmentation
 from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
@@ -50,7 +51,7 @@ def _filter_image_list(
 
 
 def apply_workflow(
-    wf_task_list: list[dict],
+    wf_task_list: list[WorkflowTask],
     dataset: Dataset,
 ):
     def print(x):
@@ -60,9 +61,9 @@ def apply_workflow(
     tmp_dataset = deepcopy(dataset)
 
     for wftask in wf_task_list:
-        task = _get_task_from_db(wftask["task_id"])
+        task = _get_task_from_db(wftask.task_id)
         task_function = task.function
-        function_args = wftask["args"]
+        function_args = wftask.args
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         # Run task
@@ -201,11 +202,13 @@ if __name__ == "__main__":
 
     # Define workflow
     wf_task_list = [
-        dict(task_id=1, args=dict(image_dir="/tmp/input_images")),
-        dict(task_id=2, args={}),
-        dict(task_id=3, args={}),
-        dict(task_id=4, args={}),
-        dict(task_id=5, args={"suffix": "mip"}),
+        WorkflowTask(
+            id=1, task_id=1, args=dict(image_dir="/tmp/input_images")
+        ),
+        WorkflowTask(id=2, task_id=2, args={}),
+        WorkflowTask(id=3, task_id=3, args={}),
+        WorkflowTask(id=4, task_id=4, args={}),
+        WorkflowTask(id=5, task_id=5, args={"suffix": "mip"}),
     ]
 
     # Clear root directory of dataset 7

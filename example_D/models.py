@@ -16,10 +16,17 @@ class Dataset(BaseModel):
 
 
 class Task(BaseModel):
-    id: Optional[int] = None
+    id: int
     function: Callable
     meta: dict[str, Any] = Field(default_factory=dict)
 
     @property
     def is_parallel(self):
         return self.meta.get("parallel", False)
+
+
+class WorkflowTask(BaseModel):
+    id: int
+    task_id: int
+    args: dict[str, Any] = Field(default_factory=dict)
+    meta: dict[str, Any] = Field(default_factory=dict)
