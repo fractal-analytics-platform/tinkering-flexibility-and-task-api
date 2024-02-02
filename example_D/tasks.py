@@ -102,25 +102,30 @@ def illumination_correction(
     path: str,
     buffer: Optional[dict[str, Any]] = None,
     image_meta: Optional[dict[str, Any]] = None,
+    overwrite_input: bool = False,
 ) -> dict:
     print("[illumination_correction] START")
     print(f"[illumination_correction] {root_dir=}")
     print(f"[illumination_correction] {path=}")
-
-    new_path = f"{path}_corr"
-    print(f"[illumination_correction] {new_path=}")
+    print(f"[illumination_correction] {overwrite_input=}")
 
     if image_meta is None:
         image_meta = {}
 
-    out = dict(
-        new_images=[
-            dict(
-                path=new_path,
-                **image_meta,
-            ),
-        ],
-    )
+    if overwrite_input:
+        out = dict(edited_paths=[path])
+
+    else:
+        new_path = f"{path}_corr"
+        print(f"[illumination_correction] {new_path=}")
+        out = dict(
+            new_images=[
+                dict(
+                    path=new_path,
+                    **image_meta,
+                ),
+            ],
+        )
     print(f"[illumination_correction] {out=}")
     print("[illumination_correction] END")
     return out

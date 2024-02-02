@@ -45,7 +45,7 @@ WF2 = Workflow(
         WorkflowTask(
             id=3,
             task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
-            args={},
+            args=dict(overwrite_input=True),
         ),
     ],
 )
