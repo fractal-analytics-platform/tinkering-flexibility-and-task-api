@@ -7,6 +7,7 @@ from typing import Any
 from typing import Optional
 
 from models import Dataset
+from models import Task
 from tasks import cellpose_segmentation
 from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
@@ -50,7 +51,6 @@ def _filter_image_list(
 
 def apply_workflow(
     wf_task_list: list[dict],
-    tasks: dict[str, dict],
     dataset: Dataset,
 ):
     def print(x):
@@ -60,16 +60,14 @@ def apply_workflow(
     tmp_dataset = deepcopy(dataset)
 
     for wftask in wf_task_list:
-        task_function = tasks[wftask["task_id"]]["function"]
+        task = _get_task_from_db(wftask["task_id"])
+        task_function = task.function
         function_args = wftask["args"]
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         # Run task
-        task = tasks[wftask["task_id"]]
-        is_parallel = task.get("meta", {}).get("parallel", False)
-        combine_components = task.get("meta", {}).get(
-            "combine_components", False
-        )
+        is_parallel = task.is_parallel
+        combine_components = task.meta.get("combine_components", False)
 
         print(
             f"NOW RUN {task_function.__name__}\n"
@@ -184,29 +182,19 @@ def apply_workflow(
         print("\n" + "-" * 88 + "\n")
 
 
+def _get_task_from_db(id: int) -> Task:
+    TASKS = [
+        Task(id=1, function=create_ome_zarr),
+        Task(id=2, function=yokogawa_to_zarr, meta=dict(parallel=True)),
+        Task(id=3, function=illumination_correction, meta=dict(parallel=True)),
+        Task(id=4, function=cellpose_segmentation, meta=dict(parallel=True)),
+        Task(id=5, function=copy_ome_zarr, meta=dict(combine_components=True)),
+    ]
+    task = next(t for t in TASKS if t.id == id)
+    return task
+
+
 if __name__ == "__main__":
-    # Define tasks
-    tasks = {
-        1: dict(
-            function=create_ome_zarr,
-        ),
-        2: dict(
-            function=yokogawa_to_zarr,
-            meta=dict(parallel=True),
-        ),
-        3: dict(
-            function=illumination_correction,
-            meta=dict(parallel=True),
-        ),
-        4: dict(
-            function=cellpose_segmentation,
-            meta=dict(parallel=True),
-        ),
-        5: dict(
-            function=copy_ome_zarr,
-            meta=dict(combine_components=True),
-        ),
-    }
 
     # Define single dataset
     dataset = Dataset(id=123, root_dir="/tmp/somewhere/")
@@ -224,4 +212,4 @@ if __name__ == "__main__":
     if os.path.isdir(dataset.root_dir):
         shutil.rmtree(dataset.root_dir)
 
-    apply_workflow(wf_task_list=wf_task_list, tasks=tasks, dataset=dataset)
+    apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
