@@ -6,7 +6,7 @@ from workflows import get_workflow_1
 
 def get_default_filters_chain(dataset: Dataset, wftask_list: list[WorkflowTask]) -> list[dict]:
 
-    current_default_filters = dataset.default_filters
+    current_default_filters = dataset.filters
     for ind, wftask in enumerate(wftask_list):
         task = get_task_from_db(wftask.task_id)
         print(ind)

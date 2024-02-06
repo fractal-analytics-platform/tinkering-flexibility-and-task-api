@@ -137,47 +137,36 @@ def apply_workflow(
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         # Run task
-        print(f"NOW RUN {task.name}\n" f"    Task type: {task.task_type}\n")
+        print(f"NOW RUN {task.name} (task type: {task.task_type})")
+        print(f"Default filters:      {pjson(tmp_dataset.filters)}")
+        print(f"WorkflowTask filters: {pjson(wftask.filters)}")
 
-        if task.task_type == "standard":
+        current_filters = copy(tmp_dataset.filters)
+        current_filters.update(wftask.filters)
+        print(f"Current filters:      {pjson(current_filters)}")
+
+        images_to_process = _filter_image_list(
+            tmp_dataset.images,
+            filters=current_filters,
+        )
+        print(f"Filtered image list:  {pjson(images_to_process)}")
+
+        if task.task_type == "non_parallel":
             task_output = _run_combined_task(
                 task=task,
-                current_image_list=[],
+                current_image_list=images_to_process,
                 function_args=function_args,
                 _dataset=tmp_dataset,
             )
-            images_to_process = []
-        else:
-
-            print(f"Default filters:      {pjson(tmp_dataset.default_filters)}")
-            print(f"WorkflowTask filters: {pjson(wftask.filters)}")
-
-            current_filters = copy(tmp_dataset.default_filters)
-            current_filters.update(wftask.filters)
-            print(f"Current filters:      {pjson(current_filters)}")
-
-            images_to_process = _filter_image_list(
-                tmp_dataset.images,
-                filters=current_filters,
+        elif task.task_type == "parallel":
+            task_output = _run_parallel_task(
+                task=task,
+                current_image_list=images_to_process,
+                function_args=function_args,
+                _dataset=tmp_dataset,
             )
-            print(f"Filtered image list:  {pjson(images_to_process)}")
-
-            if task.task_type == "combine_images":
-                task_output = _run_combined_task(
-                    task=task,
-                    current_image_list=images_to_process,
-                    function_args=function_args,
-                    _dataset=tmp_dataset,
-                )
-            elif task.task_type == "parallel":
-                task_output = _run_parallel_task(
-                    task=task,
-                    current_image_list=images_to_process,
-                    function_args=function_args,
-                    _dataset=tmp_dataset,
-                )
-            else:
-                raise ValueError(f"Invalid {task.task_type=}.")
+        else:
+            raise ValueError(f"Invalid {task.task_type=}.")
 
         # Decorate new images with source-image attributes
         new_images = task_output.get("new_images", [])
@@ -201,7 +190,7 @@ def apply_workflow(
                 tmp_dataset.images[ind] = updated_image
 
         # Update dataset metadata / default filters
-        new_filters = tmp_dataset.default_filters
+        new_filters = tmp_dataset.filters
         new_filters.update(task.new_default_filters)
         new_filters.update(task_output.get("new_filters", {}))
 
@@ -224,7 +213,7 @@ def apply_workflow(
             tmp_dataset.images.append(image)
 
         # Update dataset metadata / filters
-        tmp_dataset.default_filters = new_filters
+        tmp_dataset.filters = new_filters
 
         # Update dataset metadata / buffer
         if task_output.get("buffer", None) is not None:

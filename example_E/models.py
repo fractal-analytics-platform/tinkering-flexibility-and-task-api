@@ -24,7 +24,7 @@ class Dataset(BaseModel):
     id: Optional[int] = None
     root_dir: str
     images: list[dict[str, Any]] = []
-    default_filters: FilterSet = Field(default_factory=dict)
+    filters: FilterSet = Field(default_factory=dict)
     buffer: Optional[dict[str, Any]] = None
     history: list[dict[str, Any]] = []
 
@@ -35,7 +35,7 @@ class Task(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
     new_default_filters: FilterSet = Field(default_factory=dict)
 
-    task_type: Literal["standard", "parallel", "combine_images"] = "standard"
+    task_type: Literal["non_parallel", "parallel"] = "non_parallel"
 
     @property
     def name(self) -> str:
@@ -43,7 +43,7 @@ class Task(BaseModel):
 
 
 DB_TASKS = [
-    Task(id=1, function=create_ome_zarr, task_type="standard"),
+    Task(id=1, function=create_ome_zarr, task_type="non_parallel"),
     Task(id=2, function=yokogawa_to_zarr, task_type="parallel"),
     Task(
         id=3,
@@ -52,7 +52,7 @@ DB_TASKS = [
         new_default_filters=dict(illumination_correction=True),
     ),
     Task(id=4, function=cellpose_segmentation, task_type="parallel"),
-    Task(id=5, function=new_ome_zarr, task_type="combine_images"),
+    Task(id=5, function=new_ome_zarr, task_type="non_parallel"),
     Task(id=6, function=copy_data, task_type="parallel"),
     Task(id=7, function=maximum_intensity_projection, task_type="parallel"),
 ]
