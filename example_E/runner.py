@@ -44,15 +44,6 @@ def _filter_image_list(
     return filtered_images
 
 
-def _run_standard_task(
-    task: Task,
-    function_args: dict[str, Any],
-) -> dict[str, Any]:
-    task_output = task.function(paths=[], **function_args)
-    print(f"Task output:\n{pjson(task_output)}")
-    return task_output
-
-
 def _run_parallel_task(
     task: Task,
     current_image_list: list[dict[str, Any]],
