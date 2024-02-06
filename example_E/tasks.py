@@ -189,19 +189,57 @@ def new_ome_zarr(
             dict(path=f"{new_plate_zarr_name}/{image_relative_path}") for image_relative_path in image_relative_paths
         ],
         new_filters=dict(plate=new_plate_zarr_name),
+        buffer=dict(
+            new_ome_zarr=dict(
+                old_plate=shared_plate,
+                new_plate=new_plate_zarr_name,
+            )
+        ),
     )
     print("[new_ome_zarr] END")
     return out
 
 
-def parallel_task(
+def copy_data(
     *,
     # Standard arguments
     root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
     path: str,  # Relative path to NGFF image within root_dir
     buffer: dict[str, Any],  # Used to receive information from an "init" task
-    # Arbitrary task-specific parameter
-    subsets: Optional[dict[str, Any]] = None,
-    some_parameter: int = 1,
-):
-    pass
+) -> dict[str, Any]:
+
+    old_plate = buffer["old_plate"]
+    new_plate = buffer["new_plate"]
+    old_path = path.replace(new_plate, old_plate)
+    old_zarr_path = Path(root_dir) / old_path
+    new_zarr_path = Path(root_dir) / path
+
+    print("[copy_data] START")
+    print(f"[copy_data] {old_zarr_path=}")
+    print(f"[copy_data] {new_zarr_path=}")
+    print("[copy_data] END")
+
+    out = {}
+    return out
+
+
+def maximum_intensity_projection(
+    *,
+    # Standard arguments
+    root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
+    path: str,  # Relative path to NGFF image within root_dir
+    buffer: dict[str, Any],  # Used to receive information from an "init" task
+) -> dict[str, Any]:
+    old_plate = buffer["old_plate"]
+    new_plate = buffer["new_plate"]
+    old_path = path.replace(new_plate, old_plate)
+    old_zarr_path = Path(root_dir) / old_path
+    new_zarr_path = Path(root_dir) / path
+
+    print("[maximum_intensity_projection] START")
+    print(f"[maximum_intensity_projection] {old_zarr_path=}")
+    print(f"[maximum_intensity_projection] {new_zarr_path=}")
+    print("[maximum_intensity_projection] END")
+
+    out = dict(new_default_filters=dict(projected=True))
+    return out
