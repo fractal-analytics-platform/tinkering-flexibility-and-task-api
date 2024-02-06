@@ -126,13 +126,12 @@ def apply_workflow(
 
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
 
-        # Set selection filters
-        print(f"Dataset filters:\n{ipjson(tmp_dataset.filters)}")
-        print(f"WorkflowTask filters:\n{ipjson(wftask.filters)}")
-
+        # Set global selection filters
         current_filters = copy(tmp_dataset.filters)
         current_filters.update(wftask.filters)
-        print(f"Current filters:      {pjson(current_filters)}")
+        print(f"Dataset filters:\n{ipjson(tmp_dataset.filters)}")
+        print(f"WorkflowTask filters:\n{ipjson(wftask.filters)}")
+        print(f"Current selection filters:\n{ipjson(current_filters)}")
 
         images_to_process = _filter_image_list(
             tmp_dataset.images,
@@ -174,14 +173,20 @@ def apply_workflow(
         for ind, image in enumerate(tmp_dataset.images):
             if image["path"] in processed_images_paths:
                 updated_image = deepcopy(image)
-                for key, value in task.new_default_filters.items():
+                for key, value in task.new_filters.items():
                     updated_image[key] = value
                 tmp_dataset.images[ind] = updated_image
 
-        # Update dataset metadata / default filters
+        # Update dataset metadata / filters
+        new_filters = copy(tmp_dataset.filters)
+        new_filters.update(task.new_filters)
+        actual_task_new_filters = task_output.get("new_filters", {})
+        new_filters.update(actual_task_new_filters)
+
+        print(f"Dataset old filters:\n{ipjson(tmp_dataset.filters)}")
+        print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
+        print(f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}")
         new_filters = tmp_dataset.filters
-        new_filters.update(task.new_default_filters)
-        new_filters.update(task_output.get("new_filters", {}))
 
         # Process new_images, if any
         new_images = task_output.get("new_images", [])
