@@ -23,7 +23,7 @@ WF1 = Workflow(
         ),
         WorkflowTask(
             id=5,
-            task_id=TASK_NAME_TO_TASK_ID["copy_ome_zarr"],
+            task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
             args={"suffix": "mip"},
         ),
     ],

@@ -56,6 +56,7 @@ def non_parallel_task(
     # Standard arguments
     root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
     paths: list[str],  # can be empty, e.g. for the converter init
+    buffer: dict[str, Any],  # Used??
     # Arbitrary task-specific parameter
     image_dir: str,  # Raw-image folder
     some_parameter: int = 1,

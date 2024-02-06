@@ -8,9 +8,9 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from tasks import cellpose_segmentation
-from tasks import copy_ome_zarr
 from tasks import create_ome_zarr
 from tasks import illumination_correction
+from tasks import new_ome_zarr
 from tasks import yokogawa_to_zarr
 
 
@@ -50,7 +50,7 @@ DB_TASKS = [
         new_default_filters=dict(illumination_correction=True),
     ),
     Task(id=4, function=cellpose_segmentation, task_type="parallel"),
-    Task(id=5, function=copy_ome_zarr, task_type="combine_images"),
+    Task(id=5, function=new_ome_zarr, task_type="combine_images"),
 ]
 
 

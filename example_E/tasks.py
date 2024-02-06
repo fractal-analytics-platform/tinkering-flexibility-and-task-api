@@ -14,6 +14,7 @@ def create_ome_zarr(
     # Standard arguments
     root_dir: str,
     paths: list[str],
+    buffer: Optional[dict[str, Any]] = None,
     # Task-specific arguments
     image_dir: str,
 ) -> dict:
@@ -150,6 +151,7 @@ def new_ome_zarr(
     # Standard arguments
     root_dir: str,
     paths: list[str],
+    buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
     suffix: str = "new",
     project_to_2D: bool = True,

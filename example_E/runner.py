@@ -48,7 +48,7 @@ def _run_standard_task(
     task: Task,
     function_args: dict[str, Any],
 ) -> dict[str, Any]:
-    task_output = task.function(**function_args)
+    task_output = task.function(paths=[], **function_args)
     print(f"Task output:\n{pjson(task_output)}")
     return task_output
 
