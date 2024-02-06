@@ -78,7 +78,7 @@ WF3 = Workflow(
         WorkflowTask(
             id=5,
             task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
-            args={"suffix": "mip"},
+            args={"suffix": "new"},
         ),
         WorkflowTask(
             id=6,
@@ -86,6 +86,29 @@ WF3 = Workflow(
         ),
     ],
 )
+
+
+WF4 = Workflow(
+    id=1,
+    task_list=[
+        WorkflowTask(
+            id=1,
+            task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+            args=dict(image_dir="/tmp/input_images"),
+        ),
+        WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+        WorkflowTask(
+            id=5,
+            task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+            args={"suffix": "mip"},
+        ),
+        WorkflowTask(
+            id=6,
+            task_id=TASK_NAME_TO_TASK_ID["maximum_intensity_projection"],
+        ),
+    ],
+)
+
 
 if __name__ == "__main__":
     from devtools import debug
