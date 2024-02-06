@@ -241,5 +241,5 @@ def maximum_intensity_projection(
     print(f"[maximum_intensity_projection] {new_zarr_path=}")
     print("[maximum_intensity_projection] END")
 
-    out = dict(new_default_filters=dict(projected=True))
+    out = dict(new_filters=dict(projected=True))
     return out
