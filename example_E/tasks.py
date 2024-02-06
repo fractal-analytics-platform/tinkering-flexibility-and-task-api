@@ -208,8 +208,8 @@ def copy_data(
     buffer: dict[str, Any],  # Used to receive information from an "init" task
 ) -> dict[str, Any]:
 
-    old_plate = buffer["old_plate"]
-    new_plate = buffer["new_plate"]
+    old_plate = buffer["new_ome_zarr"]["old_plate"]
+    new_plate = buffer["new_ome_zarr"]["new_plate"]
     old_path = path.replace(new_plate, old_plate)
     old_zarr_path = Path(root_dir) / old_path
     new_zarr_path = Path(root_dir) / path
@@ -230,8 +230,8 @@ def maximum_intensity_projection(
     path: str,  # Relative path to NGFF image within root_dir
     buffer: dict[str, Any],  # Used to receive information from an "init" task
 ) -> dict[str, Any]:
-    old_plate = buffer["old_plate"]
-    new_plate = buffer["new_plate"]
+    old_plate = buffer["new_ome_zarr"]["old_plate"]
+    new_plate = buffer["new_ome_zarr"]["new_plate"]
     old_path = path.replace(new_plate, old_plate)
     old_zarr_path = Path(root_dir) / old_path
     new_zarr_path = Path(root_dir) / path
