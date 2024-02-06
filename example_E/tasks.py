@@ -11,9 +11,11 @@ def print(x):
 
 def create_ome_zarr(
     *,
+    # Standard arguments
     root_dir: str,
+    paths: list[str],
+    # Task-specific arguments
     image_dir: str,
-    buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
     """
     TBD
@@ -22,6 +24,10 @@ def create_ome_zarr(
         root_dir: Absolute path to parent folder for plate-level Zarr.
         image_dir: Absolute path to images folder.
     """
+
+    if len(paths) > 0:
+        raise RuntimeError(f"Something wrong in create_ome_zarr. {paths=}")
+
     # Based on images in image_folder, create plate OME-Zarr
     Path(root_dir).mkdir(parents=True)
     plate_zarr_name = "my_plate.zarr"
@@ -65,6 +71,7 @@ def create_ome_zarr(
 
 def yokogawa_to_zarr(
     *,
+    # Standard arguments
     root_dir: str,
     path: str,
     buffer: dict[str, Any],
@@ -95,9 +102,11 @@ def yokogawa_to_zarr(
 
 def illumination_correction(
     *,
+    # Standard arguments
     root_dir: str,
     path: str,
     buffer: Optional[dict[str, Any]] = None,
+    # Non-standard arguments
     overwrite_input: bool = False,
 ) -> dict:
     print("[illumination_correction] START")
@@ -119,9 +128,12 @@ def illumination_correction(
 
 def cellpose_segmentation(
     *,
+    # Standard arguments
     root_dir: str,
     path: str,
-    buffer: dict[str, Any],
+    buffer: Optional[dict[str, Any]] = None,
+    # Non-standard arguments
+    default_diameter: int = 100,
 ) -> dict:
     print("[cellpose_segmentation] START")
     print(f"[cellpose_segmentation] {root_dir=}")
@@ -133,12 +145,14 @@ def cellpose_segmentation(
     return out
 
 
-def copy_ome_zarr(
+def new_ome_zarr(
     *,
+    # Standard arguments
     root_dir: str,
     paths: list[str],
-    suffix: str,
-    buffer: Optional[dict[str, Any]] = None,
+    # Non-standard arguments
+    suffix: str = "new",
+    project_to_2D: bool = True,
 ) -> dict:
 
     shared_plate = set(path.split("/")[0] for path in paths)
@@ -146,18 +160,18 @@ def copy_ome_zarr(
         raise ValueError
     shared_plate = list(shared_plate)[0]
 
-    print("[copy_ome_zarr] START")
-    print(f"[copy_ome_zarr] {root_dir=}")
-    print(f"[copy_ome_zarr] Identified {shared_plate=}")
+    print("[new_ome_zarr] START")
+    print(f"[new_ome_zarr] {root_dir=}")
+    print(f"[new_ome_zarr] Identified {shared_plate=}")
 
     assert shared_plate.endswith(".zarr")
     new_plate_zarr_name = shared_plate.strip(".zarr") + f"_{suffix}.zarr"
-    print(f"[copy_ome_zarr] {new_plate_zarr_name=}")
+    print(f"[new_ome_zarr] {new_plate_zarr_name=}")
 
     # Based on images in image_folder, create plate OME-Zarr
     zarr_path = (Path(root_dir) / new_plate_zarr_name).as_posix()
 
-    print(f"[copy_ome_zarr] {zarr_path=}")
+    print(f"[new_ome_zarr] {zarr_path=}")
 
     # Create (fake) OME-Zarr folder on disk
     Path(zarr_path).mkdir()
@@ -174,5 +188,18 @@ def copy_ome_zarr(
         ],
         new_filters=dict(plate=new_plate_zarr_name),
     )
-    print("[copy_ome_zarr] END")
+    print("[new_ome_zarr] END")
     return out
+
+
+def parallel_task(
+    *,
+    # Standard arguments
+    root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
+    path: str,  # Relative path to NGFF image within root_dir
+    buffer: dict[str, Any],  # Used to receive information from an "init" task
+    # Arbitrary task-specific parameter
+    subsets: Optional[dict[str, Any]] = None,
+    some_parameter: int = 1,
+):
+    pass
