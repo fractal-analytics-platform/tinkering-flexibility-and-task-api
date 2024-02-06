@@ -2,7 +2,7 @@ from models import TASK_NAME_TO_TASK_ID
 from models import Workflow
 from models import WorkflowTask
 
-WF1 = Workflow(
+WF0 = Workflow(
     id=1,
     task_list=[
         WorkflowTask(
@@ -29,7 +29,7 @@ WF1 = Workflow(
     ],
 )
 
-WF2 = Workflow(
+WF1 = Workflow(
     id=1,
     task_list=[
         WorkflowTask(
@@ -47,7 +47,7 @@ WF2 = Workflow(
 )
 
 
-WF3 = Workflow(
+WF2 = Workflow(
     id=1,
     task_list=[
         WorkflowTask(
@@ -66,7 +66,7 @@ WF3 = Workflow(
 )
 
 
-WF4 = Workflow(
+WF3 = Workflow(
     id=1,
     task_list=[
         WorkflowTask(
@@ -90,4 +90,4 @@ WF4 = Workflow(
 if __name__ == "__main__":
     from devtools import debug
 
-    debug(WF1)
+    debug(WF0)

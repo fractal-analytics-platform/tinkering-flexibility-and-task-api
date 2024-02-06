@@ -33,7 +33,7 @@ class Task(BaseModel):
     id: int
     function: Callable
     meta: dict[str, Any] = Field(default_factory=dict)
-    new_default_filters: FilterSet = Field(default_factory=dict)
+    new_filters: FilterSet = Field(default_factory=dict)
 
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
 
@@ -49,7 +49,7 @@ DB_TASKS = [
         id=3,
         function=illumination_correction,
         task_type="parallel",
-        new_default_filters=dict(illumination_correction=True),
+        new_filters=dict(illumination_correction=True),
     ),
     Task(id=4, function=cellpose_segmentation, task_type="parallel"),
     Task(id=5, function=new_ome_zarr, task_type="non_parallel"),
