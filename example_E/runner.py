@@ -47,13 +47,11 @@ def _run_parallel_task(
 
     task_outputs = []
     for image in current_image_list:
-        function_args.update(
-            dict(
-                path=image["path"],
-                buffer=_dataset.buffer,
-            )
-        )
-        task_output = task.function(**function_args)
+        tmp_function_args = deepcopy(function_args)
+        tmp_function_args["root_dir"] = _dataset.root_dir
+        tmp_function_args["buffer"] = _dataset.buffer
+        tmp_function_args["path"] = image["path"]
+        task_output = task.function(**tmp_function_args)
         task_outputs.append(copy(task_output))
 
     # Reset buffer after using it
@@ -102,14 +100,11 @@ def _run_non_parallel_task(
     function_args: dict[str, Any],
     _dataset: Dataset,
 ) -> dict[str, Any]:
-    paths = [image["path"] for image in current_image_list]
-    function_args.update(
-        dict(
-            paths=paths,
-            buffer=_dataset.buffer,
-        )
-    )
-    task_output = task.function(**function_args)
+    tmp_function_args = deepcopy(function_args)
+    tmp_function_args["root_dir"] = _dataset.root_dir
+    tmp_function_args["paths"] = [image["path"] for image in current_image_list]
+    tmp_function_args["buffer"] = _dataset.buffer
+    task_output = task.function(**tmp_function_args)
     print(f"Task output:\n{pjson(task_output)}")
     return task_output
 
@@ -128,7 +123,6 @@ def apply_workflow(
         task = wftask.task
         task_function = task.function
         function_args = wftask.args
-        function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
 
