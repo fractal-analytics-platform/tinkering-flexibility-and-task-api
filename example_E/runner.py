@@ -149,7 +149,12 @@ def apply_workflow(
         print(f"NOW RUN {task.name}\n" f"    Task type: {task.task_type}\n")
 
         if task.task_type == "standard":
-            task_output = _run_standard_task(task, function_args)
+            task_output = _run_combined_task(
+                task=task,
+                current_image_list=[],
+                function_args=function_args,
+                _dataset=tmp_dataset,
+            )
             images_to_process = []
         else:
 
