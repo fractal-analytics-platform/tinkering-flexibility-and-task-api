@@ -121,7 +121,6 @@ def apply_workflow(
 
     for wftask in wf_task_list:
         task = wftask.task
-        task_function = task.function
         function_args = wftask.args
 
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
@@ -177,16 +176,22 @@ def apply_workflow(
                     updated_image[key] = value
                 tmp_dataset.images[ind] = updated_image
 
-        # Update dataset metadata / filters
+        # Update Dataset.filters
         new_filters = copy(tmp_dataset.filters)
         new_filters.update(task.new_filters)
         actual_task_new_filters = task_output.get("new_filters", {})
         new_filters.update(actual_task_new_filters)
-
         print(f"Dataset old filters:\n{ipjson(tmp_dataset.filters)}")
         print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
         print(f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}")
-        new_filters = tmp_dataset.filters
+        print(f"Combined new filters:\n{ipjson(new_filters)}")
+        tmp_dataset.filters = new_filters
+
+        # Update Dataset.buffer with task output or None
+        tmp_dataset.buffer = task_output.get("buffer", None)
+
+        # Update Dataset.history
+        tmp_dataset.history.append(task.name)
 
         # Process new_images, if any
         new_images = task_output.get("new_images", [])
@@ -206,16 +211,7 @@ def apply_workflow(
             print(f"Add {image} to list")
             tmp_dataset.images.append(image)
 
-        # Update dataset metadata / filters
-        tmp_dataset.filters = new_filters
-
-        # Update dataset metadata / buffer
-        if task_output.get("buffer", None) is not None:
-            tmp_dataset.buffer = task_output["buffer"]
-
-        # Update dataset metadata / history
-        tmp_dataset.history.append(task_function.__name__)
-
-        print(f"AFTER RUNNING {task_function.__name__}:")
-        print(pjson(tmp_dataset.dict()))
+        # End-of-task logs
+        print(f"AFTER RUNNING {task.name}, we have:")
+        print(ipjson(tmp_dataset.dict()))
         print("\n" + "-" * 88 + "\n")
