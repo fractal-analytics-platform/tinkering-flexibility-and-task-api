@@ -1,4 +1,3 @@
-import json
 from copy import copy
 from copy import deepcopy
 from typing import Any
@@ -9,13 +8,8 @@ from models import FilterSet
 from models import Task
 from models import WorkflowTask
 from termcolor import cprint
-
-
-def pjson(x: dict) -> str:
-    """
-    Naive JSON pretty-print.
-    """
-    return json.dumps(x, indent=2)
+from utils import ipjson
+from utils import pjson
 
 
 def _filter_image_list(
@@ -98,11 +92,11 @@ def _run_parallel_task(
     if _new_filters:
         task_output["new_filters"] = _new_filters
 
-    print(f"Merged task output:\n{json.dumps(task_output, indent=2)}")
+    print(f"Merged task output:\n{pjson(task_output)}")
     return task_output
 
 
-def _run_combined_task(
+def _run_non_parallel_task(
     task: Task,
     current_image_list: list[dict[str, Any]],
     function_args: dict[str, Any],
@@ -136,10 +130,11 @@ def apply_workflow(
         function_args = wftask.args
         function_args.update(dict(root_dir=tmp_dataset.root_dir))
 
-        # Run task
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
-        print(f"Default filters:      {pjson(tmp_dataset.filters)}")
-        print(f"WorkflowTask filters: {pjson(wftask.filters)}")
+
+        # Set selection filters
+        print(f"Dataset filters:\n{ipjson(tmp_dataset.filters)}")
+        print(f"WorkflowTask filters:\n{ipjson(wftask.filters)}")
 
         current_filters = copy(tmp_dataset.filters)
         current_filters.update(wftask.filters)
@@ -152,7 +147,7 @@ def apply_workflow(
         print(f"Filtered image list:  {pjson(images_to_process)}")
 
         if task.task_type == "non_parallel":
-            task_output = _run_combined_task(
+            task_output = _run_non_parallel_task(
                 task=task,
                 current_image_list=images_to_process,
                 function_args=function_args,
