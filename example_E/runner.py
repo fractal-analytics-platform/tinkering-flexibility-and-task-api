@@ -12,30 +12,22 @@ from utils import ipjson
 from utils import pjson
 
 
-def _filter_image_list(
-    images: list[dict[str, Any]],
-    filters: Optional[FilterSet] = None,
-    debug_mode: bool = False,
-) -> list[dict[str, Any]]:
-    def print(x):
-        return cprint(x, "red")
-
-    filtered_images = []
-    if filters is None:
-        return images
-    for image in images:
-        include_image = True
-        for key, value in filters.items():
-            if debug_mode:
-                print(key, value, image.get(key))
-            if image.get(key, False) != value:
-                include_image = False
-                break
-        if debug_mode:
-            print(image, include_image)
-        if include_image:
-            filtered_images.append(copy(image))
-    return filtered_images
+def _run_non_parallel_task(
+    task: Task,
+    current_image_list: list[dict[str, Any]],
+    function_args: dict[str, Any],
+    _dataset: Dataset,
+) -> dict[str, Any]:
+    tmp_function_args = deepcopy(function_args)
+    tmp_function_args["root_dir"] = _dataset.root_dir
+    tmp_function_args["paths"] = [image["path"] for image in current_image_list]
+    tmp_buffer = deepcopy(_dataset.buffer)
+    if tmp_buffer is not None and "parallelization_list" in tmp_buffer.keys():
+        raise ValueError("parallelization_list provided to non-parallel task")
+    tmp_function_args["buffer"] = tmp_buffer
+    task_output = task.function(**tmp_function_args)
+    print(f"Task output:\n{pjson(task_output)}")
+    return task_output
 
 
 def _run_parallel_task(
@@ -94,19 +86,30 @@ def _run_parallel_task(
     return task_output
 
 
-def _run_non_parallel_task(
-    task: Task,
-    current_image_list: list[dict[str, Any]],
-    function_args: dict[str, Any],
-    _dataset: Dataset,
-) -> dict[str, Any]:
-    tmp_function_args = deepcopy(function_args)
-    tmp_function_args["root_dir"] = _dataset.root_dir
-    tmp_function_args["paths"] = [image["path"] for image in current_image_list]
-    tmp_function_args["buffer"] = _dataset.buffer
-    task_output = task.function(**tmp_function_args)
-    print(f"Task output:\n{pjson(task_output)}")
-    return task_output
+def _filter_image_list(
+    images: list[dict[str, Any]],
+    filters: Optional[FilterSet] = None,
+    debug_mode: bool = False,
+) -> list[dict[str, Any]]:
+    def print(x):
+        return cprint(x, "red")
+
+    filtered_images = []
+    if filters is None:
+        return images
+    for image in images:
+        include_image = True
+        for key, value in filters.items():
+            if debug_mode:
+                print(key, value, image.get(key))
+            if image.get(key, False) != value:
+                include_image = False
+                break
+        if debug_mode:
+            print(image, include_image)
+        if include_image:
+            filtered_images.append(copy(image))
+    return filtered_images
 
 
 def apply_workflow(
