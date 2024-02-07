@@ -39,6 +39,28 @@ def _filter_image_list(
     return filtered_images
 
 
+def filter_images(
+    *,
+    dataset_images: list[dict[str, Any]],
+    dataset_filters: Optional[dict[str, Any]] = None,
+    wftask_filters: Optional[dict[str, Any]] = None,
+) -> list[dict[str, Any]]:
+    def print(x):
+        return cprint(x, "red")
+
+    current_filters = copy(dataset_filters)
+    current_filters.update(wftask_filters)
+    print(f"[filter_images] Dataset filters:\n{ipjson(dataset_filters)}")
+    print(f"[filter_images] WorkflowTask filters:\n{ipjson(wftask_filters)}")
+    print(f"[filter_images] Current selection filters:\n{ipjson(current_filters)}")
+    filtered_images = _filter_image_list(
+        dataset_images,
+        filters=current_filters,
+    )
+    print(f"[filter_images] Filtered image list:  {pjson(filtered_images)}")
+    return filtered_images
+
+
 def apply_workflow(
     wf_task_list: list[WorkflowTask],
     dataset: Dataset,
@@ -51,36 +73,73 @@ def apply_workflow(
 
     for wftask in wf_task_list:
         task = wftask.task
-        function_args = wftask.args
 
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
 
-        # Set global selection filters
-        current_filters = copy(tmp_dataset.filters)
-        current_filters.update(wftask.filters)
-        print(f"Dataset filters:\n{ipjson(tmp_dataset.filters)}")
-        print(f"WorkflowTask filters:\n{ipjson(wftask.filters)}")
-        print(f"Current selection filters:\n{ipjson(current_filters)}")
+        # Construct list of kwargs
+        if tmp_dataset.buffer is not None:
+            tmp_buffer = tmp_dataset.buffer
+        else:
+            tmp_buffer = {}
+        parallelization_list = tmp_buffer.get("parallelization_list", None)
 
-        images_to_process = _filter_image_list(
-            tmp_dataset.images,
-            filters=current_filters,
-        )
-        print(f"Filtered image list:  {pjson(images_to_process)}")
-
+        # (1/2) Non-parallel task
         if task.task_type == "non_parallel":
-            task_output = _run_non_parallel_task(
-                task=task,
-                current_image_list=images_to_process,
-                function_args=function_args,
-                _dataset=tmp_dataset,
-            )
+            if parallelization_list is not None:
+                raise ValueError("Found parallelization_list for non-parallel task")
+            else:
+                # Get filtered images
+                filtered_images = filter_images(
+                    dataset_images=tmp_dataset.images,
+                    dataset_filters=tmp_dataset.filters,
+                    wftask_filters=wftask.filters,
+                )
+                paths = [image["path"] for image in filtered_images]
+                function_kwargs = dict(
+                    paths=paths,
+                    root_dir=tmp_dataset.root_dir,
+                    buffer=tmp_buffer,
+                    **wftask.args,
+                )
+                task_output = _run_non_parallel_task(
+                    task=task,
+                    function_kwargs=function_kwargs,
+                )
+        # (2/2) Parallel task
         elif task.task_type == "parallel":
+            # Prepare list_function_kwargs
+            if parallelization_list is None:
+                # Get filtered images
+                filtered_images = filter_images(
+                    dataset_images=tmp_dataset.images,
+                    dataset_filters=tmp_dataset.filters,
+                    wftask_filters=wftask.filters,
+                )
+                list_function_kwargs = []
+                for image in filtered_images:
+                    list_function_kwargs.append(
+                        dict(
+                            path=image["path"],
+                            root_dir=tmp_dataset.root_dir,
+                            buffer=tmp_buffer,
+                            **wftask.args,
+                        )
+                    )
+            else:
+                # Use pre-made parallelization_list
+                list_function_kwargs = parallelization_list
+                for ind, _ in enumerate(list_function_kwargs):
+                    list_function_kwargs[ind].update(
+                        dict(
+                            root_dir=tmp_dataset.root_dir,
+                            buffer=tmp_buffer,
+                            **wftask.args,
+                        )
+                    )
+
             task_output = _run_parallel_task(
                 task=task,
-                current_image_list=images_to_process,
-                function_args=function_args,
-                _dataset=tmp_dataset,
+                list_function_kwargs=list_function_kwargs,
             )
         else:
             raise ValueError(f"Invalid {task.task_type=}.")

@@ -1,48 +1,28 @@
 from copy import copy
-from copy import deepcopy
 from typing import Any
 
-from models import Dataset
 from models import Task
 from utils import pjson
 
 
 def _run_non_parallel_task(
     task: Task,
-    current_image_list: list[dict[str, Any]],
-    function_args: dict[str, Any],
-    _dataset: Dataset,
+    function_kwargs: dict[str, Any],
 ) -> dict[str, Any]:
-    tmp_function_args = deepcopy(function_args)
-    tmp_function_args["root_dir"] = _dataset.root_dir
-    tmp_function_args["paths"] = [image["path"] for image in current_image_list]
-    tmp_buffer = deepcopy(_dataset.buffer)
-    if tmp_buffer is not None and "parallelization_list" in tmp_buffer.keys():
-        raise ValueError("parallelization_list provided to non-parallel task")
-    tmp_function_args["buffer"] = tmp_buffer
-    task_output = task.function(**tmp_function_args)
+    task_output = task.function(**function_kwargs)
     print(f"Task output:\n{pjson(task_output)}")
     return task_output
 
 
 def _run_parallel_task(
     task: Task,
-    current_image_list: list[dict[str, Any]],
-    function_args: dict[str, Any],
-    _dataset: Dataset,
+    list_function_kwargs: list[dict[str, Any]],
 ) -> dict[str, Any]:
 
     task_outputs = []
-    for image in current_image_list:
-        tmp_function_args = deepcopy(function_args)
-        tmp_function_args["root_dir"] = _dataset.root_dir
-        tmp_function_args["buffer"] = _dataset.buffer
-        tmp_function_args["path"] = image["path"]
-        task_output = task.function(**tmp_function_args)
+    for function_kwargs in list_function_kwargs:
+        task_output = task.function(**function_kwargs)
         task_outputs.append(copy(task_output))
-
-    # Reset buffer after using it
-    _dataset.buffer = None
 
     # Merge processed images
     task_output = {}
