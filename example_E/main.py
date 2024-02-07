@@ -4,18 +4,15 @@ import sys
 
 from models import Dataset
 from runner import apply_workflow
-from workflows import WF0
-from workflows import WF1
-from workflows import WF2
-from workflows import WF3
-from workflows import WF4
+from workflows import WORKFLOWS
 
 
 if __name__ == "__main__":
-    workflows = [WF0, WF1, WF2, WF3, WF4]
     if len(sys.argv) == 2:
         WF_ind = int(sys.argv[1])
-        workflows = [workflows[WF_ind]]
+        workflows = [WORKFLOWS[WF_ind]]
+    else:
+        workflows = WORKFLOWS[:]
 
     for WF in workflows:
         # Define single dataset, and reset its root_dir
