@@ -11,6 +11,7 @@ from tasks import cellpose_segmentation
 from tasks import copy_data
 from tasks import create_ome_zarr
 from tasks import illumination_correction
+from tasks import init_channel_parallelization
 from tasks import maximum_intensity_projection
 from tasks import new_ome_zarr
 from tasks import yokogawa_to_zarr
@@ -55,6 +56,7 @@ DB_TASKS = [
     Task(id=5, function=new_ome_zarr, task_type="non_parallel"),
     Task(id=6, function=copy_data, task_type="parallel"),
     Task(id=7, function=maximum_intensity_projection, task_type="parallel"),
+    Task(id=8, function=init_channel_parallelization, task_type="non_parallel"),
 ]
 
 
