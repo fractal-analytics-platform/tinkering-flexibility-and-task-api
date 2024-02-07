@@ -24,7 +24,7 @@ IMAGE LIST AND FILTERS
 
 dataset.images
 New attribute with metadata-rich list of OME-NGFF images.
-There may exist multiple versions (raw/corrected) of the same image.
+There may exist multiple versions (e.g. raw/corrected) of the same image.
 
 FILTERS
 
@@ -41,7 +41,7 @@ wftask.filters = {"well": "B03"}
 
 
 Filters are used BEFORE the task, to prepare the image list for parallelization.
-Task runs:
+THEN task runs:
     A. In parallel, with `path` looping over list of images' paths;
     B. Not in parallel, with the whole list provided as `paths` argument.
 Dataset.filters are updated AFTER the task.
