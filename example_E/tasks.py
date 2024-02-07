@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any
+from typing import Literal
 from typing import Optional
 
 from termcolor import cprint
@@ -108,12 +109,14 @@ def illumination_correction(
     path: str,
     buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
+    subsets: Optional[dict[Literal["T_index", "C_index", "Z_index"], int]] = None,
     overwrite_input: bool = False,
 ) -> dict:
     print("[illumination_correction] START")
     print(f"[illumination_correction] {root_dir=}")
     print(f"[illumination_correction] {path=}")
     print(f"[illumination_correction] {overwrite_input=}")
+    print(f"[illumination_correction] {subsets=}")
 
     if overwrite_input:
         out = dict(edited_paths=[path])
@@ -253,11 +256,11 @@ def init_channel_parallelization(
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
-    parallelization_items = []
+    parallelization_list = []
     for path in paths:
         # Find out number of channels, from Zarr array shape or from NGFF metadata
         num_channels = 2  # mock
         for ind_channel in range(num_channels):
-            parallelization_items.append(dict(path=path, subsets=dict(C_index=ind_channel)))
-    buffer = dict(parallelization_items=parallelization_items)
+            parallelization_list.append(dict(path=path, subsets=dict(C_index=ind_channel)))
+    buffer = dict(parallelization_list=parallelization_list)
     return dict(buffer=buffer)
