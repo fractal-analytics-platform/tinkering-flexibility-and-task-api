@@ -243,3 +243,21 @@ def maximum_intensity_projection(
 
     out = dict(new_filters=dict(projected=True))
     return out
+
+
+# This is a task that only serves as an init task
+def init_channel_parallelization(
+    *,
+    # Standard arguments
+    root_dir: str,
+    paths: list[str],
+    buffer: Optional[dict[str, Any]] = None,
+) -> dict:
+    parallelization_items = []
+    for path in paths:
+        # Find out number of channels, from Zarr array shape or from NGFF metadata
+        num_channels = 2  # mock
+        for ind_channel in range(num_channels):
+            parallelization_items.append(dict(path=path, subsets=dict(C_index=ind_channel)))
+    buffer = dict(parallelization_items=parallelization_items)
+    return dict(buffer=buffer)
