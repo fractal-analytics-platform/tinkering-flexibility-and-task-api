@@ -21,6 +21,13 @@ SingleFilter = Union[str, bool, int, None]
 FilterSet = dict[str, SingleFilter]
 
 
+class TaskOutputMetadata(BaseModel):  # FIXME: this is not currently used
+    buffer: Optional[dict[str, Any]] = None
+    new_images: Optional[list[dict[str, Any]]] = None
+    edited_images: Optional[list[dict[str, Any]]] = None
+    parallelization_list: Optional[list[dict[str, Any]]] = None
+
+
 class Dataset(BaseModel):
     id: Optional[int] = None
     root_dir: str
