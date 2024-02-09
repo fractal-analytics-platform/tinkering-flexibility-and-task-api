@@ -29,7 +29,7 @@ def _filter_image_list(
         for key, value in filters.items():
             if debug_mode:
                 print(key, value, image.get(key))
-            if image.get(key, False) != value:
+            if image.get(key, False) != value:  # FIXME: remove hard-coded False
                 include_image = False
                 break
         if debug_mode:
@@ -129,6 +129,9 @@ def apply_workflow(
                 # Use pre-made parallelization_list
                 list_function_kwargs = parallelization_list
                 for ind, _ in enumerate(list_function_kwargs):
+                    # FIXME: if path is not in the keys, fail
+                    # FIXME: there cannot be root_dir or buffer
+                    # FIXME: error or warning in case of overlapping keys
                     list_function_kwargs[ind].update(
                         dict(
                             root_dir=tmp_dataset.root_dir,
@@ -136,6 +139,7 @@ def apply_workflow(
                             **wftask.args,
                         )
                     )
+                    # FIXME use "set" on the final list
 
             task_output = _run_parallel_task(
                 task=task,
