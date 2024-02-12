@@ -118,6 +118,22 @@ WORKFLOWS = [
             ),
         ],
     ),
+    Workflow(
+        id=1,
+        task_list=[
+            WorkflowTask(
+                id=1,
+                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr_multiplex"],
+                args=dict(image_dir="/tmp/input_images"),
+            ),
+            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(
+                id=3,
+                task_id=TASK_NAME_TO_TASK_ID["init_registration"],
+                args={"ref_cycle_name": "0"},
+            ),
+        ],
+    ),
 ]
 
 if __name__ == "__main__":
