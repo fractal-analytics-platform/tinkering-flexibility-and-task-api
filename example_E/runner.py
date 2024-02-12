@@ -100,12 +100,17 @@ def apply_workflow(
 
         print(f"NOW RUN {task.name} (task type: {task.task_type})")
 
-        # Construct list of kwargs
+        # Extract tmp_buffer
         if tmp_dataset.buffer is not None:
             tmp_buffer = tmp_dataset.buffer
         else:
             tmp_buffer = {}
-        parallelization_list = tmp_buffer.get("parallelization_list", None)
+
+        # Extract parallelization_list
+        if tmp_dataset.parallelization_list is not None:
+            parallelization_list = tmp_dataset.parallelization_list
+        else:
+            parallelization_list = None
 
         # (1/2) Non-parallel task
         if task.task_type == "non_parallel":
@@ -182,8 +187,6 @@ def apply_workflow(
             # actual_new_image.update(new_image)
             # new_images[ind] = actual_new_image
 
-        from devtools import debug
-
         # Construct up-to-date filters
         new_filters = copy(tmp_dataset.filters)
         new_filters.update(task.new_filters)
@@ -193,9 +196,6 @@ def apply_workflow(
         print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
         print(f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}")
         print(f"Combined new filters:\n{ipjson(new_filters)}")
-
-        # Update Dataset.filters
-        tmp_dataset.filters = new_filters
 
         # Add filters to edited images, and update Dataset.images
         edited_images = task_output.get("edited_images", [])
@@ -207,10 +207,8 @@ def apply_workflow(
 
         # Add filters to new images
         new_images = task_output.get("new_images", [])
-        debug(new_images)
         for ind, image in enumerate(new_images):
             updated_image = _apply_filters_to_image(image=image, filters=new_filters)
-            debug(image, updated_image)
             new_images[ind] = updated_image
         new_images = _deduplicate_image_list(new_images)
 
@@ -224,8 +222,14 @@ def apply_workflow(
             print(f"Add {image} to list")
             tmp_dataset.images.append(image)
 
-        # Update Dataset.buffer with task output or None
+        # Update Dataset.filters
+        tmp_dataset.filters = new_filters
+
+        # Update Dataset.buffer
         tmp_dataset.buffer = task_output.get("buffer", None)
+
+        # Update Dataset.parallelization_list
+        tmp_dataset.parallelization_list = task_output.get("parallelization_list", None)
 
         # Update Dataset.history
         tmp_dataset.history.append(task.name)

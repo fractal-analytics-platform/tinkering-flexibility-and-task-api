@@ -24,10 +24,24 @@ KwargsType = dict[str, Any]
 
 
 class TaskOutput(BaseModel):
-    buffer: Optional[dict[str, Any]] = None
-    new_filters: Optional[FilterSet] = None
+
     new_images: Optional[list[SingleImage]] = None
+    """List of new images added by a given task instance."""
+
     edited_images: Optional[list[SingleImage]] = None
+    """List of images edited by a given task instance."""
+
+    new_filters: Optional[FilterSet] = None
+    """
+    *Global* filters (common to all images) added by this task.
+
+    Note: the right place for these filters would be in the task manifest,
+    but this attribute is useful for the ones which determined at runtime
+    (e.g. the plate name).
+    """
+
+    buffer: Optional[dict[str, Any]] = None
+    """Catch-all """
     parallelization_list: Optional[list[KwargsType]] = None
 
     class Config:
@@ -37,10 +51,12 @@ class TaskOutput(BaseModel):
 class Dataset(BaseModel):
     id: Optional[int] = None
     root_dir: str
+    history: list[dict[str, Any]] = []
     images: list[dict[str, Any]] = []
     filters: FilterSet = Field(default_factory=dict)
+    # Temporary state
     buffer: Optional[dict[str, Any]] = None
-    history: list[dict[str, Any]] = []
+    parallelization_list: Optional[list[dict[str, Any]]] = None
 
 
 class Task(BaseModel):

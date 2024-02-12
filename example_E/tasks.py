@@ -256,11 +256,14 @@ def init_channel_parallelization(
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
+    print("[init_channel_parallelization] START")
+    print(f"[init_channel_parallelization] {root_dir=}")
+    print(f"[init_channel_parallelization] {paths=}")
     parallelization_list = []
     for path in paths:
         # Find out number of channels, from Zarr array shape or from NGFF metadata
         num_channels = 2  # mock
         for ind_channel in range(num_channels):
             parallelization_list.append(dict(path=path, subsets=dict(C_index=ind_channel)))
-    buffer = dict(parallelization_list=parallelization_list)
-    return dict(buffer=buffer)
+    print("[init_channel_parallelization] END")
+    return dict(parallelization_list=parallelization_list)
