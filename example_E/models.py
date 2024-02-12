@@ -24,7 +24,6 @@ KwargsType = dict[str, Any]
 
 
 class TaskOutput(BaseModel):
-
     new_images: Optional[list[SingleImage]] = None
     """List of new images added by a given task instance."""
 
@@ -41,8 +40,16 @@ class TaskOutput(BaseModel):
     """
 
     buffer: Optional[dict[str, Any]] = None
-    """Catch-all """
+    """
+    Metadata used for communication between an init task and its (parallel)
+    companion task.
+    """
+
     parallelization_list: Optional[list[KwargsType]] = None
+    """
+    Used in the output of an init task, to expose customizable parallelization
+    of the companion task.
+    """
 
     class Config:
         extra = "forbid"
