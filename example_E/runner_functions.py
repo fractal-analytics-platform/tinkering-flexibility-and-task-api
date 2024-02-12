@@ -23,10 +23,12 @@ def _run_parallel_task(
 ) -> dict[str, Any]:
 
     task_outputs = []
+    path_to_new_image_mapping = {}
     for function_kwargs in list_function_kwargs:
         task_output = task.function(**function_kwargs)
-        task_outputs.append(copy(task_output))
+        path_to_new_image_mapping[function_kwargs["path"]] = None  # FIXME: map it to something
         TaskOutput(**task_output)
+        task_outputs.append(copy(task_output))
 
     # Merge processed images
     task_output = {}

@@ -25,7 +25,6 @@ class TaskOutput(BaseModel):  # FIXME: this is not currently used
     buffer: Optional[dict[str, Any]] = None
     new_filters: Optional[FilterSet] = None
     new_images: Optional[list[dict[str, Any]]] = None
-    edited_images: Optional[list[dict[str, Any]]] = None
     edited_paths: Optional[list[str]] = None
     parallelization_list: Optional[list[dict[str, Any]]] = None
 

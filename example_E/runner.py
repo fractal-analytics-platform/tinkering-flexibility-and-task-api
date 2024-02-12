@@ -1,7 +1,7 @@
 from copy import copy
 from copy import deepcopy
-from typing import Any
 from typing import Optional
+from typing import Union
 
 from models import Dataset
 from models import FilterSet
@@ -13,11 +13,14 @@ from utils import ipjson
 from utils import pjson
 
 
+SingleImage = dict[str, Union[str, bool, int, None]]
+
+
 def _filter_image_list(
-    images: list[dict[str, Any]],
+    images: list[SingleImage],
     filters: Optional[FilterSet] = None,
     debug_mode: bool = False,
-) -> list[dict[str, Any]]:
+) -> list[SingleImage]:
     def print(x):
         return cprint(x, "red")
 
@@ -41,10 +44,10 @@ def _filter_image_list(
 
 def filter_images(
     *,
-    dataset_images: list[dict[str, Any]],
-    dataset_filters: Optional[dict[str, Any]] = None,
-    wftask_filters: Optional[dict[str, Any]] = None,
-) -> list[dict[str, Any]]:
+    dataset_images: list[SingleImage],
+    dataset_filters: Optional[FilterSet] = None,
+    wftask_filters: Optional[FilterSet] = None,
+) -> list[SingleImage]:
     def print(x):
         return cprint(x, "red")
 
@@ -59,6 +62,30 @@ def filter_images(
     )
     print(f"[filter_images] Filtered image list:  {pjson(filtered_images)}")
     return filtered_images
+
+
+def _apply_filters_to_single_image(
+    *,
+    image: SingleImage,
+    filters: FilterSet,
+) -> SingleImage:
+    updated_image = deepcopy(image)
+    for key, value in filters.items():
+        updated_image[key] = value
+    return updated_image
+
+
+def _deduplicate_image_list(
+    image_list: list[SingleImage],
+) -> list[SingleImage]:
+    """
+    Custom replacement for `set(list_of_dict)`, since `dict` is not hashable.
+    """
+    new_image_list = []
+    for image in image_list:
+        if image not in new_image_list:
+            new_image_list.append(image)
+    return new_image_list
 
 
 def apply_workflow(
@@ -158,18 +185,9 @@ def apply_workflow(
             # actual_new_image.update(new_image)
             # new_images[ind] = actual_new_image
 
-        # Add filters to processed images
-        new_images = task_output.get("new_images", [])
-        processed_images_paths = [image["path"] for image in new_images] + task_output.get("edited_paths", [])
+        from devtools import debug
 
-        for ind, image in enumerate(tmp_dataset.images):
-            if image["path"] in processed_images_paths:
-                updated_image = deepcopy(image)
-                for key, value in task.new_filters.items():
-                    updated_image[key] = value
-                tmp_dataset.images[ind] = updated_image
-
-        # Update Dataset.filters
+        # Construct up-to-date filters
         new_filters = copy(tmp_dataset.filters)
         new_filters.update(task.new_filters)
         actual_task_new_filters = task_output.get("new_filters", {})
@@ -178,23 +196,27 @@ def apply_workflow(
         print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
         print(f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}")
         print(f"Combined new filters:\n{ipjson(new_filters)}")
+
+        # Update Dataset.filters
         tmp_dataset.filters = new_filters
 
-        # Update Dataset.buffer with task output or None
-        tmp_dataset.buffer = task_output.get("buffer", None)
+        # Add filters to edited images, and update Dataset.images
+        processed_images_paths = task_output.get("edited_paths", [])
+        for ind, image in enumerate(tmp_dataset.images):
+            if image["path"] in processed_images_paths:
+                updated_image = _apply_filters_to_single_image(image=image, filters=new_filters)
+                tmp_dataset.images[ind] = updated_image
 
-        # Update Dataset.history
-        tmp_dataset.history.append(task.name)
-
-        # Process new_images, if any
+        # Add filters to new images
         new_images = task_output.get("new_images", [])
+        debug(new_images)
         for ind, image in enumerate(new_images):
-            new_image = deepcopy(image)
-            for key, value in new_filters.items():
-                new_image[key] = value
-            new_images[ind] = new_image
+            updated_image = _apply_filters_to_single_image(image=image, filters=new_filters)
+            debug(image, updated_image)
+            new_images[ind] = updated_image
+        new_images = _deduplicate_image_list(new_images)
 
-        # Update dataset metadata / images
+        # Add new images to Dataset.images
         for image in new_images:
             try:
                 overlap = next(_image for _image in tmp_dataset.images if _image["path"] == image["path"])
@@ -203,6 +225,12 @@ def apply_workflow(
                 pass
             print(f"Add {image} to list")
             tmp_dataset.images.append(image)
+
+        # Update Dataset.buffer with task output or None
+        tmp_dataset.buffer = task_output.get("buffer", None)
+
+        # Update Dataset.history
+        tmp_dataset.history.append(task.name)
 
         # End-of-task logs
         print(f"AFTER RUNNING {task.name}, we have:")
