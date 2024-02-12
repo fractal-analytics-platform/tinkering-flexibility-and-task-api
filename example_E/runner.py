@@ -5,6 +5,7 @@ from typing import Optional
 from models import Dataset
 from models import FilterSet
 from models import SingleImage
+from models import TaskOutput
 from models import WorkflowTask
 from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
@@ -176,6 +177,10 @@ def apply_workflow(
             )
         else:
             raise ValueError(f"Invalid {task.task_type=}.")
+
+        # Redundant validation step (useful especially to check the merged
+        # output of a parallel task)
+        TaskOutput(**task_output)
 
         # Decorate new images with source-image attributes
         new_images = task_output.get("new_images", [])
