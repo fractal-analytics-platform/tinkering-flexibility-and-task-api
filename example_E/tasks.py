@@ -267,3 +267,114 @@ def init_channel_parallelization(
             parallelization_list.append(dict(path=path, subsets=dict(C_index=ind_channel)))
     print("[init_channel_parallelization] END")
     return dict(parallelization_list=parallelization_list)
+
+
+def create_ome_zarr_multiplex(
+    *,
+    # Standard arguments
+    root_dir: str,
+    paths: list[str],
+    buffer: Optional[dict[str, Any]] = None,
+    # Task-specific arguments
+    image_dir: str,
+) -> dict:
+    if len(paths) > 0:
+        raise RuntimeError(f"Something wrong in create_ome_zarr_multiplex. {paths=}")
+
+    # Based on images in image_folder, create plate OME-Zarr
+    Path(root_dir).mkdir(parents=True)
+    plate_zarr_name = "my_plate.zarr"
+    zarr_path = (Path(root_dir) / plate_zarr_name).as_posix()
+
+    print("[create_ome_zarr_multiplex] START")
+    print(f"[create_ome_zarr_multiplex] {image_dir=}")
+    print(f"[create_ome_zarr_multiplex] {root_dir=}")
+    print(f"[create_ome_zarr_multiplex] {zarr_path=}")
+
+    # Create (fake) OME-Zarr folder on disk
+    Path(zarr_path).mkdir()
+
+    # Create well/image OME-Zarr folders on disk
+    image_relative_paths = [f"{well}/{cycle}" for well in ["A/01", "A/02"] for cycle in ["0", "1", "2"]]
+    for image_relative_path in image_relative_paths:
+        (Path(zarr_path) / image_relative_path).mkdir(parents=True)
+
+    # Prepare output metadata
+    out = dict(
+        new_images=[
+            dict(
+                path=f"{plate_zarr_name}/{image_relative_path}",
+                well="_".join(image_relative_path.split("/")[:2]),
+            )
+            for image_relative_path in image_relative_paths
+        ],
+        buffer=dict(
+            image_raw_paths={
+                f"{plate_zarr_name}/A/01/0": f"{image_dir}/figure_A01_0.tif",
+                f"{plate_zarr_name}/A/01/1": f"{image_dir}/figure_A01_1.tif",
+                f"{plate_zarr_name}/A/01/2": f"{image_dir}/figure_A01_2.tif",
+                f"{plate_zarr_name}/A/02/0": f"{image_dir}/figure_A02_0.tif",
+                f"{plate_zarr_name}/A/02/1": f"{image_dir}/figure_A02_1.tif",
+                f"{plate_zarr_name}/A/02/2": f"{image_dir}/figure_A02_2.tif",
+            },
+        ),
+        new_filters=dict(
+            plate=plate_zarr_name,
+        ),
+    )
+    print("[create_ome_zarr] END")
+    return out
+
+
+# This is a task that only serves as an init task
+def init_registration(
+    *,
+    # Standard arguments
+    root_dir: str,
+    paths: list[str],
+    buffer: Optional[dict[str, Any]] = None,
+    # Non-standard arguments
+    ref_cycle_name: str,
+) -> dict:
+
+    print("[init_registration] START")
+    print(f"[init_registration] {root_dir=}")
+    print(f"[init_registration] {paths=}")
+
+    # Detect plate prefix
+    shared_plate = set(path.split("/")[0] for path in paths)
+    if len(shared_plate) > 1:
+        raise ValueError
+    shared_plate = list(shared_plate)[0]
+    print(f"[init_registration] Identified {shared_plate=}")
+
+    ref_cycles_per_well = {}
+    x_cycles_per_well = {}
+    wells = []
+    for path in paths:
+        path_splits = path.lstrip(shared_plate).strip("/").split("/")
+        well = "/".join(path_splits[0:2])
+        wells.append(well)
+        image = path_splits[2]
+        if image == ref_cycle_name:
+            assert well not in ref_cycles_per_well.keys()
+            ref_cycles_per_well[well] = path
+        else:
+            cycles = x_cycles_per_well.get(well, [])
+            cycles.append(path)
+            x_cycles_per_well[well] = cycles
+
+    parallelization_list = []
+    for well in sorted(set(wells)):
+        print(f"[init_registration] {well=}")
+        ref_path = ref_cycles_per_well[well]
+        for path in x_cycles_per_well[well]:
+            parallelization_list.append(
+                dict(
+                    path=path,
+                    ref_path=ref_path,
+                )
+            )
+
+    print("[init_registration] END")
+    return dict(parallelization_list=parallelization_list)

@@ -10,12 +10,13 @@ from pydantic import root_validator
 from tasks import cellpose_segmentation
 from tasks import copy_data
 from tasks import create_ome_zarr
+from tasks import create_ome_zarr_multiplex
 from tasks import illumination_correction
 from tasks import init_channel_parallelization
+from tasks import init_registration
 from tasks import maximum_intensity_projection
 from tasks import new_ome_zarr
 from tasks import yokogawa_to_zarr
-
 
 SingleFilter = Union[str, bool, int, None]
 FilterSet = dict[str, SingleFilter]
@@ -93,6 +94,8 @@ DB_TASKS = [
     Task(id=6, function=copy_data, task_type="parallel"),
     Task(id=7, function=maximum_intensity_projection, task_type="parallel"),
     Task(id=8, function=init_channel_parallelization, task_type="non_parallel"),
+    Task(id=9, function=init_registration, task_type="non_parallel"),
+    Task(id=10, function=create_ome_zarr_multiplex, task_type="non_parallel"),
 ]
 
 
