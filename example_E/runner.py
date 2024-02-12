@@ -1,19 +1,16 @@
 from copy import copy
 from copy import deepcopy
 from typing import Optional
-from typing import Union
 
 from models import Dataset
 from models import FilterSet
+from models import SingleImage
 from models import WorkflowTask
 from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
 from termcolor import cprint
 from utils import ipjson
 from utils import pjson
-
-
-SingleImage = dict[str, Union[str, bool, int, None]]
 
 
 def _filter_image_list(
@@ -64,7 +61,7 @@ def filter_images(
     return filtered_images
 
 
-def _apply_filters_to_single_image(
+def _apply_filters_to_image(
     *,
     image: SingleImage,
     filters: FilterSet,
@@ -201,17 +198,18 @@ def apply_workflow(
         tmp_dataset.filters = new_filters
 
         # Add filters to edited images, and update Dataset.images
-        processed_images_paths = task_output.get("edited_paths", [])
+        edited_images = task_output.get("edited_images", [])
+        edited_paths = [image["path"] for image in edited_images]
         for ind, image in enumerate(tmp_dataset.images):
-            if image["path"] in processed_images_paths:
-                updated_image = _apply_filters_to_single_image(image=image, filters=new_filters)
+            if image["path"] in edited_paths:
+                updated_image = _apply_filters_to_image(image=image, filters=new_filters)
                 tmp_dataset.images[ind] = updated_image
 
         # Add filters to new images
         new_images = task_output.get("new_images", [])
         debug(new_images)
         for ind, image in enumerate(new_images):
-            updated_image = _apply_filters_to_single_image(image=image, filters=new_filters)
+            updated_image = _apply_filters_to_image(image=image, filters=new_filters)
             debug(image, updated_image)
             new_images[ind] = updated_image
         new_images = _deduplicate_image_list(new_images)

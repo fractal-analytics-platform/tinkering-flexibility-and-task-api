@@ -119,7 +119,7 @@ def illumination_correction(
     print(f"[illumination_correction] {subsets=}")
 
     if overwrite_input:
-        out = dict(edited_paths=[path])
+        out = dict(edited_images=[dict(path=path)])
 
     else:
         new_path = f"{path}_corr"
