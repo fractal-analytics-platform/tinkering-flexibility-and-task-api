@@ -2,6 +2,7 @@ from copy import copy
 from typing import Any
 
 from models import Task
+from models import TaskOutput
 from utils import pjson
 
 
@@ -11,6 +12,8 @@ def _run_non_parallel_task(
 ) -> dict[str, Any]:
     task_output = task.function(**function_kwargs)
     print(f"Task output:\n{pjson(task_output)}")
+    # Validate task output:
+    TaskOutput(**task_output)
     return task_output
 
 
@@ -23,6 +26,7 @@ def _run_parallel_task(
     for function_kwargs in list_function_kwargs:
         task_output = task.function(**function_kwargs)
         task_outputs.append(copy(task_output))
+        TaskOutput(**task_output)
 
     # Merge processed images
     task_output = {}
