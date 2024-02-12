@@ -19,14 +19,16 @@ from tasks import yokogawa_to_zarr
 
 SingleFilter = Union[str, bool, int, None]
 FilterSet = dict[str, SingleFilter]
+SingleImage = dict[str, Union[str, bool, int, None]]
+KwargsType = dict[str, Any]
 
 
-class TaskOutput(BaseModel):  # FIXME: this is not currently used
+class TaskOutput(BaseModel):
     buffer: Optional[dict[str, Any]] = None
     new_filters: Optional[FilterSet] = None
-    new_images: Optional[list[dict[str, Any]]] = None
-    edited_paths: Optional[list[str]] = None
-    parallelization_list: Optional[list[dict[str, Any]]] = None
+    new_images: Optional[list[SingleImage]] = None
+    edited_images: Optional[list[SingleImage]] = None
+    parallelization_list: Optional[list[KwargsType]] = None
 
     class Config:
         extra = "forbid"
