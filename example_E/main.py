@@ -16,8 +16,7 @@ if __name__ == "__main__":
 
     for WF in workflows:
         # Define single dataset, and reset its root_dir
-        dataset = Dataset(id=123, root_dir="/tmp/somewhere/")
-        if os.path.isdir(dataset.root_dir):
-            shutil.rmtree(dataset.root_dir)
-
+        dataset = Dataset(id=123)
+        if os.path.isdir("/tmp/somewhere"):
+            shutil.rmtree("/tmp/somewhere")
         apply_workflow(wf_task_list=WF.task_list, dataset=dataset)

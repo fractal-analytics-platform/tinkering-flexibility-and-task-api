@@ -58,7 +58,6 @@ class TaskOutput(BaseModel):
 
 class Dataset(BaseModel):
     id: Optional[int] = None
-    root_dir: str
     history: list[dict[str, Any]] = []
     images: list[dict[str, Any]] = []
     filters: FilterSet = Field(default_factory=dict)

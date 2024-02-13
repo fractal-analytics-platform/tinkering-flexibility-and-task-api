@@ -9,7 +9,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(
@@ -35,7 +35,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(
@@ -51,7 +51,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(
@@ -68,7 +68,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(
@@ -88,7 +88,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(
@@ -108,7 +108,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"]),
             WorkflowTask(id=3, task_id=TASK_NAME_TO_TASK_ID["init_channel_parallelization"]),
@@ -124,7 +124,7 @@ WORKFLOWS = [
             WorkflowTask(
                 id=1,
                 task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr_multiplex"],
-                args=dict(image_dir="/tmp/input_images"),
+                args=dict(image_dir="/tmp/input_images", zarr_dir="/tmp/somewhere"),
             ),
             WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
             WorkflowTask(

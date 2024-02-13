@@ -127,7 +127,6 @@ def apply_workflow(
                 paths = [image["path"] for image in filtered_images]
                 function_kwargs = dict(
                     paths=paths,
-                    root_dir=tmp_dataset.root_dir,
                     buffer=tmp_buffer,
                     **wftask.args,
                 )
@@ -150,7 +149,6 @@ def apply_workflow(
                     list_function_kwargs.append(
                         dict(
                             path=image["path"],
-                            root_dir=tmp_dataset.root_dir,
                             buffer=tmp_buffer,
                             **wftask.args,
                         )
@@ -160,11 +158,10 @@ def apply_workflow(
                 list_function_kwargs = parallelization_list
                 for ind, _ in enumerate(list_function_kwargs):
                     # FIXME: if path is not in the keys, fail
-                    # FIXME: there cannot be root_dir or buffer
+                    # FIXME: there cannot be or buffer
                     # FIXME: error or warning in case of overlapping keys
                     list_function_kwargs[ind].update(
                         dict(
-                            root_dir=tmp_dataset.root_dir,
                             buffer=tmp_buffer,
                             **wftask.args,
                         )
