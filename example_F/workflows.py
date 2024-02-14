@@ -4,7 +4,7 @@ from models import WorkflowTask
 
 WORKFLOWS = [
     Workflow(
-        id=1,
+        id=0,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -46,7 +46,7 @@ WORKFLOWS = [
         ],
     ),
     Workflow(
-        id=1,
+        id=2,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -63,7 +63,7 @@ WORKFLOWS = [
         ],
     ),
     Workflow(
-        id=1,
+        id=3,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -83,7 +83,7 @@ WORKFLOWS = [
         ],
     ),
     Workflow(
-        id=1,
+        id=4,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -103,7 +103,7 @@ WORKFLOWS = [
         ],
     ),
     Workflow(
-        id=1,
+        id=5,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -119,7 +119,7 @@ WORKFLOWS = [
         ],
     ),
     Workflow(
-        id=1,
+        id=6,
         task_list=[
             WorkflowTask(
                 id=1,
@@ -131,6 +131,35 @@ WORKFLOWS = [
                 id=3,
                 task_id=TASK_NAME_TO_TASK_ID["init_registration"],
                 args={"ref_cycle_name": "0"},
+            ),
+        ],
+    ),
+    Workflow(
+        id=7,
+        task_list=[
+            WorkflowTask(
+                id=1,
+                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                args=dict(image_dir="/tmp/input_images"),
+            ),
+            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(
+                id=5,
+                task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+                args={"suffix": "mip"},
+            ),
+            WorkflowTask(
+                id=6,
+                task_id=TASK_NAME_TO_TASK_ID["maximum_intensity_projection"],
+            ),
+            WorkflowTask(
+                id=7,
+                task_id=TASK_NAME_TO_TASK_ID["cellpose_segmentation"],
+            ),
+            WorkflowTask(
+                id=8,
+                task_id=TASK_NAME_TO_TASK_ID["cellpose_segmentation"],
+                filters=dict(data_dimensionality="3", plate=None),
             ),
         ],
     ),
