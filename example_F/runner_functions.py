@@ -35,7 +35,7 @@ def _run_parallel_task(
         task_outputs.append(copy(task_output))
 
     # Merge processed images # FIXME
-    # task_output = {}
+    task_output = {}
 
     # TODO: clean-up parallel metadata merge
 
