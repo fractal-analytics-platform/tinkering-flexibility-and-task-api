@@ -65,6 +65,7 @@ def create_ome_zarr(
         ),
         new_filters=dict(
             plate=plate_zarr_name,
+            data_dimensionality="3",
         ),
     )
     print("[create_ome_zarr] END")
@@ -244,7 +245,7 @@ def maximum_intensity_projection(
     print(f"[maximum_intensity_projection] {new_zarr_path=}")
     print("[maximum_intensity_projection] END")
 
-    out = dict(new_filters=dict(projected=True))
+    out = dict(edited_images=[dict(path=path)])
     return out
 
 
@@ -320,6 +321,7 @@ def create_ome_zarr_multiplex(
         ),
         new_filters=dict(
             plate=plate_zarr_name,
+            data_dimensionality="3",
         ),
     )
     print("[create_ome_zarr] END")
