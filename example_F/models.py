@@ -103,7 +103,7 @@ DB_TASKS = [
         id=7,
         function=maximum_intensity_projection,
         task_type="parallel",
-        new_filters=dict(data_dimensionality=2),
+        new_filters=dict(data_dimensionality="2"),
     ),
     Task(id=8, function=init_channel_parallelization, task_type="non_parallel"),
     Task(id=9, function=init_registration, task_type="non_parallel"),
