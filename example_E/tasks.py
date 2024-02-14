@@ -13,31 +13,33 @@ def print(x):
 def create_ome_zarr(
     *,
     # Standard arguments
-    root_dir: str,
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
     # Task-specific arguments
+    zarr_dir: str,
     image_dir: str,
 ) -> dict:
     """
     TBD
 
     Args:
-        root_dir: Absolute path to parent folder for plate-level Zarr.
         image_dir: Absolute path to images folder.
+        zarr_dir: Absolute path to parent folder for plate-level Zarr.
     """
 
     if len(paths) > 0:
         raise RuntimeError(f"Something wrong in create_ome_zarr. {paths=}")
 
+
     # Based on images in image_folder, create plate OME-Zarr
-    Path(root_dir).mkdir(parents=True)
+    zarr_dir = zarr_dir.rstrip("/")
     plate_zarr_name = "my_plate.zarr"
-    zarr_path = (Path(root_dir) / plate_zarr_name).as_posix()
+    Path(zarr_dir).mkdir(parents=True)
+    zarr_path = (Path(zarr_dir) / plate_zarr_name).as_posix()
 
     print("[create_ome_zarr] START")
     print(f"[create_ome_zarr] {image_dir=}")
-    print(f"[create_ome_zarr] {root_dir=}")
+    print(f"[create_ome_zarr] {zarr_dir=}")
     print(f"[create_ome_zarr] {zarr_path=}")
 
     # Create (fake) OME-Zarr folder on disk
@@ -52,15 +54,15 @@ def create_ome_zarr(
     out = dict(
         new_images=[
             dict(
-                path=f"{plate_zarr_name}/{image_relative_path}",
+                path=f"{zarr_dir}/{plate_zarr_name}/{image_relative_path}",
                 well="_".join(image_relative_path.split("/")[:2]),
             )
             for image_relative_path in image_relative_paths
         ],
         buffer=dict(
             image_raw_paths={
-                f"{plate_zarr_name}/A/01/0": f"{image_dir}/figure_A01.tif",
-                f"{plate_zarr_name}/A/02/0": f"{image_dir}/figure_A02.tif",
+                f"{zarr_dir}/{plate_zarr_name}/A/01/0": f"{image_dir}/figure_A01.tif",
+                f"{zarr_dir}/{plate_zarr_name}/A/02/0": f"{image_dir}/figure_A02.tif",
             },
         ),
         new_filters=dict(
@@ -74,7 +76,6 @@ def create_ome_zarr(
 def yokogawa_to_zarr(
     *,
     # Standard arguments
-    root_dir: str,
     path: str,
     buffer: dict[str, Any],
 ) -> dict:
@@ -82,20 +83,17 @@ def yokogawa_to_zarr(
     TBD
 
     Args:
-        root_dir: Absolute path to parent folder for plate-level Zarr.
-        path:
-            Relative image path within `root_dir`, e.g.`"plate.zarr/A/01/0"".
+        path: Absolute image path         
     """
 
     print("[yokogawa_to_zarr] START")
-    print(f"[yokogawa_to_zarr] {root_dir=}")
     print(f"[yokogawa_to_zarr] {path=}")
 
     source_data = buffer["image_raw_paths"][path]
     print(f"[yokogawa_to_zarr] {source_data=}")
 
     # Write fake image data into image Zarr group
-    with (Path(root_dir) / path / "data").open("w") as f:
+    with (Path(path) / "data").open("w") as f:
         f.write(f"Source data: {source_data}\n")
 
     print("[yokogawa_to_zarr] END")
@@ -105,7 +103,6 @@ def yokogawa_to_zarr(
 def illumination_correction(
     *,
     # Standard arguments
-    root_dir: str,
     path: str,
     buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
@@ -113,7 +110,6 @@ def illumination_correction(
     overwrite_input: bool = False,
 ) -> dict:
     print("[illumination_correction] START")
-    print(f"[illumination_correction] {root_dir=}")
     print(f"[illumination_correction] {path=}")
     print(f"[illumination_correction] {overwrite_input=}")
     print(f"[illumination_correction] {subsets=}")
@@ -133,14 +129,12 @@ def illumination_correction(
 def cellpose_segmentation(
     *,
     # Standard arguments
-    root_dir: str,
     path: str,
     buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
     default_diameter: int = 100,
 ) -> dict:
     print("[cellpose_segmentation] START")
-    print(f"[cellpose_segmentation] {root_dir=}")
     print(f"[cellpose_segmentation] {path=}")
 
     out = dict()
@@ -152,7 +146,6 @@ def cellpose_segmentation(
 def new_ome_zarr(
     *,
     # Standard arguments
-    root_dir: str,
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
@@ -160,21 +153,29 @@ def new_ome_zarr(
     project_to_2D: bool = True,
 ) -> dict:
 
-    shared_plate = set(path.split("/")[0] for path in paths)
-    if len(shared_plate) > 1:
+    shared_plates = []
+    shared_root_dirs = []
+    for path in paths:
+        tmp = path.split(".zarr/")[0]
+        shared_root_dirs.append("/".join(tmp.split("/")[:-1]))
+        shared_plates.append(tmp.split("/")[-1] + ".zarr")
+        
+        
+    if len(set(shared_plates)) > 1 or len(set(shared_root_dirs)) > 1:
         raise ValueError
-    shared_plate = list(shared_plate)[0]
+    shared_plate = list(shared_plates)[0]
+    shared_root_dir = list(shared_root_dirs)[0]
 
     print("[new_ome_zarr] START")
-    print(f"[new_ome_zarr] {root_dir=}")
     print(f"[new_ome_zarr] Identified {shared_plate=}")
+    print(f"[new_ome_zarr] Identified {shared_root_dir=}")
 
     assert shared_plate.endswith(".zarr")
     new_plate_zarr_name = shared_plate.strip(".zarr") + f"_{suffix}.zarr"
     print(f"[new_ome_zarr] {new_plate_zarr_name=}")
 
     # Based on images in image_folder, create plate OME-Zarr
-    zarr_path = (Path(root_dir) / new_plate_zarr_name).as_posix()
+    zarr_path = (Path(shared_root_dir) / new_plate_zarr_name).as_posix()
 
     print(f"[new_ome_zarr] {zarr_path=}")
 
@@ -206,16 +207,16 @@ def new_ome_zarr(
 def copy_data(
     *,
     # Standard arguments
-    root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
-    path: str,  # Relative path to NGFF image within root_dir
+    path: str,
     buffer: dict[str, Any],  # Used to receive information from an "init" task
 ) -> dict[str, Any]:
 
     old_plate = buffer["new_ome_zarr"]["old_plate"]
     new_plate = buffer["new_ome_zarr"]["new_plate"]
     old_path = path.replace(new_plate, old_plate)
-    old_zarr_path = Path(root_dir) / old_path
-    new_zarr_path = Path(root_dir) / path
+    zarr_dir = Path(path).parent
+    old_zarr_path = Path(zarr_dir) / old_path
+    new_zarr_path = Path(zarr_dir) / path
 
     print("[copy_data] START")
     print(f"[copy_data] {old_zarr_path=}")
@@ -229,15 +230,15 @@ def copy_data(
 def maximum_intensity_projection(
     *,
     # Standard arguments
-    root_dir: str,  # Parent folder of the main Zarr group (typically the plate one)
-    path: str,  # Relative path to NGFF image within root_dir
+    path: str,  # Absolute path to NGFF image
     buffer: dict[str, Any],  # Used to receive information from an "init" task
 ) -> dict[str, Any]:
     old_plate = buffer["new_ome_zarr"]["old_plate"]
     new_plate = buffer["new_ome_zarr"]["new_plate"]
     old_path = path.replace(new_plate, old_plate)
-    old_zarr_path = Path(root_dir) / old_path
-    new_zarr_path = Path(root_dir) / path
+    zarr_dir = Path(path).parent
+    old_zarr_path = Path(zarr_dir) / old_path
+    new_zarr_path = Path(zarr_dir) / path
 
     print("[maximum_intensity_projection] START")
     print(f"[maximum_intensity_projection] {old_zarr_path=}")
@@ -252,12 +253,10 @@ def maximum_intensity_projection(
 def init_channel_parallelization(
     *,
     # Standard arguments
-    root_dir: str,
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
 ) -> dict:
     print("[init_channel_parallelization] START")
-    print(f"[init_channel_parallelization] {root_dir=}")
     print(f"[init_channel_parallelization] {paths=}")
     parallelization_list = []
     for path in paths:
@@ -272,23 +271,24 @@ def init_channel_parallelization(
 def create_ome_zarr_multiplex(
     *,
     # Standard arguments
-    root_dir: str,
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
     # Task-specific arguments
     image_dir: str,
+    zarr_dir: str,
 ) -> dict:
     if len(paths) > 0:
         raise RuntimeError(f"Something wrong in create_ome_zarr_multiplex. {paths=}")
 
     # Based on images in image_folder, create plate OME-Zarr
-    Path(root_dir).mkdir(parents=True)
+    zarr_dir = zarr_dir.rstrip("/")
+    Path(zarr_dir).mkdir(parents=True)
     plate_zarr_name = "my_plate.zarr"
-    zarr_path = (Path(root_dir) / plate_zarr_name).as_posix()
+    zarr_path = (Path(zarr_dir) / plate_zarr_name).as_posix()
 
     print("[create_ome_zarr_multiplex] START")
     print(f"[create_ome_zarr_multiplex] {image_dir=}")
-    print(f"[create_ome_zarr_multiplex] {root_dir=}")
+    print(f"[create_ome_zarr_multiplex] {zarr_dir=}")
     print(f"[create_ome_zarr_multiplex] {zarr_path=}")
 
     # Create (fake) OME-Zarr folder on disk
@@ -303,19 +303,19 @@ def create_ome_zarr_multiplex(
     out = dict(
         new_images=[
             dict(
-                path=f"{plate_zarr_name}/{image_relative_path}",
+                path=f"{zarr_path}/{image_relative_path}",
                 well="_".join(image_relative_path.split("/")[:2]),
             )
             for image_relative_path in image_relative_paths
         ],
         buffer=dict(
             image_raw_paths={
-                f"{plate_zarr_name}/A/01/0": f"{image_dir}/figure_A01_0.tif",
-                f"{plate_zarr_name}/A/01/1": f"{image_dir}/figure_A01_1.tif",
-                f"{plate_zarr_name}/A/01/2": f"{image_dir}/figure_A01_2.tif",
-                f"{plate_zarr_name}/A/02/0": f"{image_dir}/figure_A02_0.tif",
-                f"{plate_zarr_name}/A/02/1": f"{image_dir}/figure_A02_1.tif",
-                f"{plate_zarr_name}/A/02/2": f"{image_dir}/figure_A02_2.tif",
+                f"{zarr_path}/A/01/0": f"{image_dir}/figure_A01_0.tif",
+                f"{zarr_path}/A/01/1": f"{image_dir}/figure_A01_1.tif",
+                f"{zarr_path}/A/01/2": f"{image_dir}/figure_A01_2.tif",
+                f"{zarr_path}/A/02/0": f"{image_dir}/figure_A02_0.tif",
+                f"{zarr_path}/A/02/1": f"{image_dir}/figure_A02_1.tif",
+                f"{zarr_path}/A/02/2": f"{image_dir}/figure_A02_2.tif",
             },
         ),
         new_filters=dict(
@@ -330,7 +330,6 @@ def create_ome_zarr_multiplex(
 def init_registration(
     *,
     # Standard arguments
-    root_dir: str,
     paths: list[str],
     buffer: Optional[dict[str, Any]] = None,
     # Non-standard arguments
@@ -338,21 +337,30 @@ def init_registration(
 ) -> dict:
 
     print("[init_registration] START")
-    print(f"[init_registration] {root_dir=}")
     print(f"[init_registration] {paths=}")
 
     # Detect plate prefix
-    shared_plate = set(path.split("/")[0] for path in paths)
-    if len(shared_plate) > 1:
+    shared_plates = []
+    shared_root_dirs = []
+    for path in paths:
+        tmp = path.split(".zarr/")[0]
+        shared_root_dirs.append("/".join(tmp.split("/")[:-1]))
+        shared_plates.append(tmp.split("/")[-1] + ".zarr")
+        
+        
+    if len(set(shared_plates)) > 1 or len(set(shared_root_dirs)) > 1:
         raise ValueError
-    shared_plate = list(shared_plate)[0]
+    shared_plate = list(shared_plates)[0]
+    shared_root_dir = list(shared_root_dirs)[0]
+    
     print(f"[init_registration] Identified {shared_plate=}")
+    print(f"[init_registration] Identified {shared_root_dir=}")
 
     ref_cycles_per_well = {}
     x_cycles_per_well = {}
     wells = []
     for path in paths:
-        path_splits = path.lstrip(shared_plate).strip("/").split("/")
+        path_splits = path.lstrip(f"{shared_root_dir}/{shared_plate}").strip("/").split("/")
         well = "/".join(path_splits[0:2])
         wells.append(well)
         image = path_splits[2]
