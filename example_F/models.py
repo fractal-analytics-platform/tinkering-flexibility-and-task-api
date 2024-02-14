@@ -18,10 +18,15 @@ from tasks import maximum_intensity_projection
 from tasks import new_ome_zarr
 from tasks import yokogawa_to_zarr
 
-SingleFilter = Union[str, bool, int, None]
-FilterSet = dict[str, SingleFilter]
-SingleImage = dict[str, Union[str, bool, int, None]]
 KwargsType = dict[str, Any]
+ImageAttribute = Union[str, bool, int, None]  # a scalar JSON object
+FilterSet = dict[str, ImageAttribute]
+SingleImage = dict[str, ImageAttribute]
+
+# Example image
+# image = {"path": "/tmp/asasd", "dimensions": 3}
+# Example filters
+# filters = {"dimensions": 2, "illumination_corrected": False}
 
 
 class TaskOutput(BaseModel):
@@ -58,21 +63,23 @@ class TaskOutput(BaseModel):
 
 class Dataset(BaseModel):
     id: Optional[int] = None
-    root_dir: str
     history: list[dict[str, Any]] = []
-    images: list[dict[str, Any]] = []
+    # New in v2
+    root_dir: str
+    images: list[SingleImage] = Field(default_factory=list)
     filters: FilterSet = Field(default_factory=dict)
     # Temporary state
     buffer: Optional[dict[str, Any]] = None
     parallelization_list: Optional[list[dict[str, Any]]] = None
+    # Removed from V1
+    # resource_list (relationship)
 
 
 class Task(BaseModel):
     id: int
-    function: Callable
+    function: Callable  # mock of task.command
     meta: dict[str, Any] = Field(default_factory=dict)
     new_filters: FilterSet = Field(default_factory=dict)
-
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
 
     @property
@@ -92,7 +99,12 @@ DB_TASKS = [
     Task(id=4, function=cellpose_segmentation, task_type="parallel"),
     Task(id=5, function=new_ome_zarr, task_type="non_parallel"),
     Task(id=6, function=copy_data, task_type="parallel"),
-    Task(id=7, function=maximum_intensity_projection, task_type="parallel"),
+    Task(
+        id=7,
+        function=maximum_intensity_projection,
+        task_type="parallel",
+        new_filters=dict(data_dimensionality=2),
+    ),
     Task(id=8, function=init_channel_parallelization, task_type="non_parallel"),
     Task(id=9, function=init_registration, task_type="non_parallel"),
     Task(id=10, function=create_ome_zarr_multiplex, task_type="non_parallel"),
