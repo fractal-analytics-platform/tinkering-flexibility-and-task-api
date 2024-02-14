@@ -11,6 +11,8 @@ def _run_non_parallel_task(
     function_kwargs: dict[str, Any],
 ) -> dict[str, Any]:
     task_output = task.function(**function_kwargs)
+    if task_output is None:
+        task_output = {}
     print(f"Task output:\n{pjson(task_output)}")
     # Validate task output:
     TaskOutput(**task_output)
@@ -26,12 +28,14 @@ def _run_parallel_task(
     path_to_new_image_mapping = {}
     for function_kwargs in list_function_kwargs:
         task_output = task.function(**function_kwargs)
+        if task_output is None:
+            task_output = {}
         path_to_new_image_mapping[function_kwargs["path"]] = None  # FIXME: map it to something
         TaskOutput(**task_output)
         task_outputs.append(copy(task_output))
 
-    # Merge processed images
-    task_output = {}
+    # Merge processed images # FIXME
+    # task_output = {}
 
     # TODO: clean-up parallel metadata merge
 
@@ -41,12 +45,12 @@ def _run_parallel_task(
     for _out in task_outputs:
         for _new_image in _out.get("new_images", []):
             _new_images.append(_new_image)
-        for _edited_path in _out.get("edited_paths", []):
-            _edited_images.append(_edited_path)
+        for _edited_image in _out.get("edited_images", []):
+            _edited_images.append(_edited_image)
     if _new_images:
         task_output["new_images"] = _new_images
     if _edited_images:
-        task_output["edited_paths"] = _edited_images
+        task_output["edited_images"] = _edited_images
 
     # Merge new filters
     _new_filters = None

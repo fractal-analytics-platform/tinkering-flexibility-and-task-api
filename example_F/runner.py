@@ -22,9 +22,9 @@ def _filter_image_list(
     def print(x):
         return cprint(x, "red")
 
-    filtered_images = []
     if filters is None:
         return images
+    filtered_images = []
     for image in images:
         include_image = True
         for key, value in filters.items():
@@ -240,6 +240,6 @@ def apply_workflow(
         tmp_dataset.history.append(task.name)
 
         # End-of-task logs
-        print(f"AFTER RUNNING {task.name}, we have:")
+        print(f"AFTER RUNNING {task.name}, we have this dataset:")
         print(ipjson(tmp_dataset.dict()))
         print("\n" + "-" * 88 + "\n")
