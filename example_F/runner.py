@@ -30,9 +30,10 @@ def _filter_image_list(
         for key, value in filters.items():
             if debug_mode:
                 print(key, value, image.get(key))
-            if image.get(key, False) != value:  # FIXME: remove hard-coded False
-                include_image = False
-                break
+            if value is not None:
+                if image.get(key, False) != value:  # FIXME: remove hard-coded False
+                    include_image = False
+                    break
         if debug_mode:
             print(image, include_image)
         if include_image:
@@ -53,6 +54,7 @@ def filter_images(
     current_filters.update(wftask_filters)
     print(f"[filter_images] Dataset filters:\n{ipjson(dataset_filters)}")
     print(f"[filter_images] WorkflowTask filters:\n{ipjson(wftask_filters)}")
+    print(f"[filter_images] Dataset images:\n{ipjson(dataset_images)}")
     print(f"[filter_images] Current selection filters:\n{ipjson(current_filters)}")
     filtered_images = _filter_image_list(
         dataset_images,
