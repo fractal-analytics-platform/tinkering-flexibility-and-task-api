@@ -1,171 +1,172 @@
-from models import TASK_NAME_TO_TASK_ID
+# from models import TASK_NAME_TO_TASK_ID
+from models import Task
 from models import Workflow
 from models import WorkflowTask
+from tasks import cellpose_segmentation
+from tasks import copy_data
+from tasks import create_ome_zarr
+from tasks import create_ome_zarr_multiplex
+from tasks import illumination_correction
+from tasks import init_channel_parallelization
+from tasks import init_registration
+from tasks import maximum_intensity_projection
+from tasks import new_ome_zarr
+from tasks import yokogawa_to_zarr
+
+TASKS = {
+    "create_ome_zarr": Task(function=create_ome_zarr, task_type="non_parallel"),
+    "yokogawa_to_zarr": Task(function=yokogawa_to_zarr, task_type="parallel"),
+    "create_ome_zarr_multiplex": Task(function=create_ome_zarr_multiplex, task_type="non_parallel"),
+    "cellpose_segmentation": Task(function=cellpose_segmentation, task_type="parallel"),
+    "new_ome_zarr": Task(function=new_ome_zarr, task_type="non_parallel"),
+    "copy_data": Task(function=copy_data, task_type="parallel"),
+    "illumination_correction": Task(
+        function=illumination_correction,
+        task_type="parallel",
+        new_filters=dict(illumination_correction=True),
+    ),
+    "maximum_intensity_projection": Task(
+        function=maximum_intensity_projection,
+        task_type="parallel",
+        new_filters=dict(data_dimensionality="2"),
+    ),
+    "init_channel_parallelization": Task(function=init_channel_parallelization, task_type="non_parallel"),
+    "init_registration": Task(function=init_registration, task_type="non_parallel"),
+}
+
 
 WORKFLOWS = [
     Workflow(
-        id=0,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=Task(function=yokogawa_to_zarr), args={}),
             WorkflowTask(
-                id=3,
-                task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
+                task=Task(
+                    function=illumination_correction,
+                    task_type="parallel",
+                    new_filters=dict(illumination_correction=True),
+                ),
                 args={},
             ),
             WorkflowTask(
-                id=4,
-                task_id=TASK_NAME_TO_TASK_ID["cellpose_segmentation"],
+                task=TASKS["cellpose_segmentation"],
                 args={},
             ),
             WorkflowTask(
-                id=5,
-                task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+                task=TASKS["new_ome_zarr"],
                 args={"suffix": "mip"},
             ),
         ],
     ),
     Workflow(
-        id=1,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=3,
-                task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
+                task=TASKS["illumination_correction"],
                 args=dict(overwrite_input=True),
             ),
         ],
     ),
     Workflow(
-        id=2,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=3,
-                task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
+                task=TASKS["illumination_correction"],
                 args=dict(overwrite_input=True),
                 filters=dict(well="A_01"),
             ),
         ],
     ),
     Workflow(
-        id=3,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=5,
-                task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+                task=TASKS["new_ome_zarr"],
                 args={"suffix": "new"},
             ),
             WorkflowTask(
-                id=6,
-                task_id=TASK_NAME_TO_TASK_ID["copy_data"],
+                task=TASKS["copy_data"],
             ),
         ],
     ),
     Workflow(
-        id=4,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=5,
-                task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+                task=TASKS["new_ome_zarr"],
                 args={"suffix": "mip"},
             ),
             WorkflowTask(
-                id=6,
-                task_id=TASK_NAME_TO_TASK_ID["maximum_intensity_projection"],
+                task=TASKS["maximum_intensity_projection"],
             ),
         ],
     ),
     Workflow(
-        id=5,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"]),
-            WorkflowTask(id=3, task_id=TASK_NAME_TO_TASK_ID["init_channel_parallelization"]),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"]),
+            WorkflowTask(task=TASKS["init_channel_parallelization"]),
             WorkflowTask(
-                id=4,
-                task_id=TASK_NAME_TO_TASK_ID["illumination_correction"],
+                task=TASKS["illumination_correction"],
             ),
         ],
     ),
     Workflow(
-        id=6,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr_multiplex"],
+                task=TASKS["create_ome_zarr_multiplex"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=3,
-                task_id=TASK_NAME_TO_TASK_ID["init_registration"],
+                task=TASKS["init_registration"],
                 args={"ref_cycle_name": "0"},
             ),
         ],
     ),
     Workflow(
-        id=7,
         task_list=[
             WorkflowTask(
-                id=1,
-                task_id=TASK_NAME_TO_TASK_ID["create_ome_zarr"],
+                task=TASKS["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
             ),
-            WorkflowTask(id=2, task_id=TASK_NAME_TO_TASK_ID["yokogawa_to_zarr"], args={}),
+            WorkflowTask(task=TASKS["yokogawa_to_zarr"], args={}),
             WorkflowTask(
-                id=5,
-                task_id=TASK_NAME_TO_TASK_ID["new_ome_zarr"],
+                task=TASKS["new_ome_zarr"],
                 args={"suffix": "mip"},
             ),
             WorkflowTask(
-                id=6,
-                task_id=TASK_NAME_TO_TASK_ID["maximum_intensity_projection"],
+                task=TASKS["maximum_intensity_projection"],
             ),
             WorkflowTask(
-                id=7,
-                task_id=TASK_NAME_TO_TASK_ID["cellpose_segmentation"],
+                task=TASKS["cellpose_segmentation"],
             ),
             WorkflowTask(
-                id=8,
-                task_id=TASK_NAME_TO_TASK_ID["cellpose_segmentation"],
+                task=TASKS["cellpose_segmentation"],
                 filters=dict(data_dimensionality="3", plate=None),
             ),
         ],
     ),
 ]
-
-if __name__ == "__main__":
-    from devtools import debug
-
-    debug(WORKFLOWS[0])
