@@ -4,6 +4,7 @@ from copy import deepcopy
 from filters import filter_images
 from filters import FilterSet
 from images import _deduplicate_image_list
+from images import find_image_by_path
 from images import SingleImage
 from models import Dataset
 from models import TaskOutput
@@ -12,7 +13,6 @@ from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
 from termcolor import cprint
 from utils import ipjson
-
 
 def _apply_attributes_to_image(
     *,
@@ -110,8 +110,14 @@ def apply_workflow(
                     )
                     # FIXME use "set" on the final list
                 # FIXME kwargs.path poi cerca in tmp_dataset.images l'immagine con quel path e costruisci (ordinata come list_function_kwargs)
-                filtered_images = []  # FIXME change name `filtered_images`
-
+                
+                filtered_images = [
+                    find_image_by_path(
+                        images=deepcopy(tmp_dataset.images),
+                        path=kwargs["path"]
+                    )
+                    for kwargs in list_function_kwargs
+                ]  # FIXME change name `filtered_images`
             task_output = _run_parallel_task(
                 task=task,
                 list_function_kwargs=list_function_kwargs,
@@ -129,9 +135,6 @@ def apply_workflow(
         for ind, new_image in enumerate(new_images):
             pass
             # FIXME: missing
-            # source_image[new_image["path"]] = ??
-            # actual_new_image = copy(source_image)
-            # actual_new_image.update(new_image)
             # new_images[ind] = actual_new_image
 
         # Construct up-to-date filters
@@ -151,13 +154,13 @@ def apply_workflow(
             if image["path"] in edited_paths:
                 updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
                 tmp_dataset.images[ind] = updated_image
-
         # Add filters to new images
         new_images = task_output.get("new_images", [])
         for ind, image in enumerate(new_images):
             updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
             new_images[ind] = updated_image
         new_images = _deduplicate_image_list(new_images)
+
 
         # Add new images to Dataset.images
         for image in new_images:
