@@ -2,10 +2,11 @@ from copy import copy
 from typing import Any
 
 from env import MAX_PARALLELIZATION_LIST_SIZE
+from images import find_image_by_path
 from models import Task
 from models import TaskOutput
+from models import SingleImage
 from utils import pjson
-
 
 def _run_non_parallel_task(
     task: Task,
@@ -23,6 +24,7 @@ def _run_non_parallel_task(
 def _run_parallel_task(
     task: Task,
     list_function_kwargs: list[dict[str, Any]],
+    images: list[SingleImage],
 ) -> dict[str, Any]:
 
     if len(list_function_kwargs) > MAX_PARALLELIZATION_LIST_SIZE:
@@ -59,7 +61,11 @@ def _run_parallel_task(
     _edited_images = []
     for _out in task_outputs:
         for _new_image in _out.get("new_images", []):
-            _new_images.append(_new_image)
+            
+            old_image = find_image_by_path(
+                images=images, path=mapping[_new_image["path"]]
+            )
+            _new_images.append({**old_image, **_new_image})
         for _edited_image in _out.get("edited_images", []):
             _edited_images.append(_edited_image)
     if _new_images:
