@@ -25,14 +25,19 @@ def _run_parallel_task(
 ) -> dict[str, Any]:
 
     task_outputs = []
-    path_to_new_image_mapping = {}
+    mapping = {}
     for function_kwargs in list_function_kwargs:
         task_output = task.function(**function_kwargs)
         if task_output is None:
             task_output = {}
-        path_to_new_image_mapping[function_kwargs["path"]] = None  # FIXME: map it to something
-        # For instance:
-        # mapping: dict[str, str] = {"plate.zarr/A/01/0_new": "plate.zarr/A/01/0", ..}
+        if task_output.get("new_images") is not None:
+            mapping.update(
+                {
+                    new_image["path"]: function_kwargs["path"]
+                    for new_image in task_output["new_images"]
+                }
+                # {"plate.zarr/A/01/0_new": "plate.zarr/A/01/0", ..}
+            )
         TaskOutput(**task_output)
         task_outputs.append(copy(task_output))
 
