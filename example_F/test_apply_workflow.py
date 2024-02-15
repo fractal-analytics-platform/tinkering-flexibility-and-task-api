@@ -1,8 +1,8 @@
 from typing import Any
 from typing import Optional
 
+from filters import FilterSet
 from models import Dataset
-from models import FilterSet
 from models import Task
 from models import Workflow
 from pydantic import BaseModel

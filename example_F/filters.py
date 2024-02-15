@@ -1,11 +1,13 @@
 from copy import copy
 from typing import Optional
 
-from models import FilterSet
-from models import SingleImage
+from images import ImageAttribute
+from images import SingleImage
 from termcolor import cprint
 from utils import ipjson
 from utils import pjson
+
+FilterSet = dict[str, ImageAttribute]
 
 
 def _filter_image_list(

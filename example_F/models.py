@@ -2,8 +2,9 @@ from typing import Any
 from typing import Callable
 from typing import Literal
 from typing import Optional
-from typing import Union
 
+from filters import FilterSet
+from images import SingleImage
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
@@ -19,14 +20,6 @@ from tasks import new_ome_zarr
 from tasks import yokogawa_to_zarr
 
 KwargsType = dict[str, Any]
-ImageAttribute = Union[str, bool, int, None]  # a scalar JSON object
-FilterSet = dict[str, ImageAttribute]
-SingleImage = dict[str, ImageAttribute]
-
-# Example image
-# image = {"path": "/tmp/asasd", "dimensions": 3}
-# Example filters
-# filters = {"dimensions": 2, "illumination_corrected": False}
 
 
 class TaskOutput(BaseModel):

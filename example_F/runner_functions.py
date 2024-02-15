@@ -31,6 +31,8 @@ def _run_parallel_task(
         if task_output is None:
             task_output = {}
         path_to_new_image_mapping[function_kwargs["path"]] = None  # FIXME: map it to something
+        # For instance:
+        # mapping: dict[str, str] = {"plate.zarr/A/01/0_new": "plate.zarr/A/01/0", ..}
         TaskOutput(**task_output)
         task_outputs.append(copy(task_output))
 
