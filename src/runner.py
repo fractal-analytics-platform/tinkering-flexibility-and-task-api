@@ -111,9 +111,10 @@ def apply_workflow(
                     # FIXME use "set" on the final list
                 # FIXME kwargs.path poi cerca in tmp_dataset.images l'immagine con quel path e costruisci (ordinata come list_function_kwargs)
                 
+
                 filtered_images = [
                     find_image_by_path(
-                        images=deepcopy(tmp_dataset.images),
+                        images=tmp_dataset.images,
                         path=kwargs["path"]
                     )
                     for kwargs in list_function_kwargs
