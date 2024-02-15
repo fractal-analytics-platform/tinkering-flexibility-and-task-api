@@ -30,10 +30,15 @@ def _filter_image_list(
         for key, value in filters.items():
             if debug_mode:
                 print(key, value, image.get(key))
-            if value is not None:
-                if image.get(key, False) != value:  # FIXME: remove hard-coded False
-                    include_image = False
-                    break
+
+            # If the FilterSet input includes the key-value pair
+            # "attribute": None, then we ignore "attribute"
+            if value is None:
+                continue
+
+            if image.get(key, False) != value:  # FIXME: remove hard-coded False
+                include_image = False
+                break
         if debug_mode:
             print(image, include_image)
         if include_image:
