@@ -35,13 +35,13 @@ def _run_parallel_task(
         )
 
     task_outputs = []
-    mapping = {}
+    new_old_image_mapping = {}
     for function_kwargs in list_function_kwargs:
         task_output = task.function(**function_kwargs)
         if task_output is None:
             task_output = {}
         if task_output.get("new_images") is not None:
-            mapping.update(
+            new_old_image_mapping.update(
                 {
                     new_image["path"]: function_kwargs["path"]
                     for new_image in task_output["new_images"]
@@ -63,7 +63,7 @@ def _run_parallel_task(
         for _new_image in _out.get("new_images", []):
             
             old_image = find_image_by_path(
-                images=images, path=mapping[_new_image["path"]]
+                images=images, path=new_old_image_mapping[_new_image["path"]]
             )
             _new_images.append({**old_image, **_new_image})
         for _edited_image in _out.get("edited_images", []):
