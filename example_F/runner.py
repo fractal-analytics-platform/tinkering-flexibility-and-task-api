@@ -1,9 +1,10 @@
 from copy import copy
 from copy import deepcopy
 
+from env import MAX_PARALLELIZATION_LIST_SIZE
 from filters import filter_images
+from filters import FilterSet
 from models import Dataset
-from models import FilterSet
 from models import SingleImage
 from models import TaskOutput
 from models import WorkflowTask
