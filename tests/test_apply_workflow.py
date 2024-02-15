@@ -6,7 +6,7 @@ from runner import apply_workflow
 
 from tests.tasks_for_tests import copy_and_edit_image
 from tests.tasks_for_tests import create_images_from_scratch
-from tests.tasks_for_tests import edit_images
+from tests.tasks_for_tests import edit_image
 from tests.tasks_for_tests import print_path
 
 
@@ -27,7 +27,7 @@ wf = Workflow(
         WorkflowTask(
             id=2,
             task_id=2,
-            task=Task(id=2, task_type="parallel", function=edit_images, new_filters=dict(key="value")),
+            task=Task(id=2, task_type="parallel", function=edit_image, new_filters=dict(key="value")),
         ),
         # a, b, c all with key=value
         # dataset.filters key=value
