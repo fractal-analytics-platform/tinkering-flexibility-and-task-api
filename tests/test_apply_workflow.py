@@ -1,54 +1,13 @@
-from typing import Any
-from typing import Optional
-
-from filters import FilterSet
 from models import Dataset
 from models import Task
 from models import Workflow
-from pydantic import BaseModel
-from pydantic import Field
+from models import WorkflowTask
 from runner import apply_workflow
 
-
-class WorkflowTask(BaseModel):
-    id: int
-    task_id: int
-    args: dict[str, Any] = Field(default_factory=dict)
-    meta: dict[str, Any] = Field(default_factory=dict)
-    task: Optional[Task] = None
-    filters: FilterSet = Field(default_factory=dict)
-
-
-def create_images_from_scratch(
-    root_dir: str,
-    paths: list[str],
-    buffer: dict[str, Any],
-) -> dict[str, Any]:
-    new_images = [
-        dict(path="a"),
-        dict(path="b"),
-        dict(path="c"),
-    ]
-    return dict(new_images=new_images)
-
-
-def edit_images(root_dir: str, path: str, buffer: dict[str, Any], custom_parameter: int = 1) -> dict[str, Any]:
-    edited_images = [dict(path=path)]
-    return dict(edited_images=edited_images)
-
-
-def copy_and_edit_image(
-    root_dir: str,
-    path: str,
-    buffer: dict[str, Any],
-) -> dict[str, Any]:
-    new_images = [dict(path=f"{path}_new", processed=True)]
-    return dict(new_images=new_images)
-
-
-def print_path(root_dir: str, path: str, buffer: dict[str, Any], custom_parameter: int = 1) -> dict[str, Any]:
-    print(f"{path=}")
-    return {}
+from tests.tasks_for_tests import copy_and_edit_image
+from tests.tasks_for_tests import create_images_from_scratch
+from tests.tasks_for_tests import edit_images
+from tests.tasks_for_tests import print_path
 
 
 dataset = Dataset(id=1, root_dir="/invalid")
@@ -95,4 +54,7 @@ wf = Workflow(
         ),
     ],
 )
-apply_workflow(wf_task_list=wf.task_list, dataset=dataset)
+
+
+def test_apply_workflow():
+    apply_workflow(wf_task_list=wf.task_list, dataset=dataset)
