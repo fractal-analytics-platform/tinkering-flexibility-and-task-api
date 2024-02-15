@@ -1,7 +1,7 @@
 from copy import copy
 from copy import deepcopy
-from typing import Optional
 
+from filters import filter_images
 from models import Dataset
 from models import FilterSet
 from models import SingleImage
@@ -11,65 +11,9 @@ from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
 from termcolor import cprint
 from utils import ipjson
-from utils import pjson
 
 
-def _filter_image_list(
-    images: list[SingleImage],
-    filters: Optional[FilterSet] = None,
-    debug_mode: bool = False,
-) -> list[SingleImage]:
-    def print(x):
-        return cprint(x, "red")
-
-    if filters is None:
-        return images
-    filtered_images = []
-    for image in images:
-        include_image = True
-        for key, value in filters.items():
-            if debug_mode:
-                print(key, value, image.get(key))
-
-            # If the FilterSet input includes the key-value pair
-            # "attribute": None, then we ignore "attribute"
-            if value is None:
-                continue
-
-            if image.get(key, False) != value:  # FIXME: remove hard-coded False
-                include_image = False
-                break
-        if debug_mode:
-            print(image, include_image)
-        if include_image:
-            filtered_images.append(copy(image))
-    return filtered_images
-
-
-def filter_images(
-    *,
-    dataset_images: list[SingleImage],
-    dataset_filters: Optional[FilterSet] = None,
-    wftask_filters: Optional[FilterSet] = None,
-) -> list[SingleImage]:
-    def print(x):
-        return cprint(x, "red")
-
-    current_filters = copy(dataset_filters)
-    current_filters.update(wftask_filters)
-    print(f"[filter_images] Dataset filters:\n{ipjson(dataset_filters)}")
-    print(f"[filter_images] WorkflowTask filters:\n{ipjson(wftask_filters)}")
-    print(f"[filter_images] Dataset images:\n{ipjson(dataset_images)}")
-    print(f"[filter_images] Current selection filters:\n{ipjson(current_filters)}")
-    filtered_images = _filter_image_list(
-        dataset_images,
-        filters=current_filters,
-    )
-    print(f"[filter_images] Filtered image list:  {pjson(filtered_images)}")
-    return filtered_images
-
-
-def _apply_filters_to_image(
+def _apply_attributes_to_image(
     *,
     image: SingleImage,
     filters: FilterSet,
@@ -214,13 +158,13 @@ def apply_workflow(
         edited_paths = [image["path"] for image in edited_images]
         for ind, image in enumerate(tmp_dataset.images):
             if image["path"] in edited_paths:
-                updated_image = _apply_filters_to_image(image=image, filters=new_filters)
+                updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
                 tmp_dataset.images[ind] = updated_image
 
         # Add filters to new images
         new_images = task_output.get("new_images", [])
         for ind, image in enumerate(new_images):
-            updated_image = _apply_filters_to_image(image=image, filters=new_filters)
+            updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
             new_images[ind] = updated_image
         new_images = _deduplicate_image_list(new_images)
 
