@@ -1,4 +1,5 @@
 from typing import Any
+from typing import Optional
 
 import pytest
 from devtools import debug
@@ -44,20 +45,33 @@ def test_max_parallelization_list_size(N: int):
         debug(N, str(e.value))
 
 
-def test_image_attribute_propagation():
-    def _copy_and_edit_image(
-        root_dir: str,
-        path: str,
-        buffer: dict[str, Any],
-    ) -> dict[str, Any]:
-        new_images = [
-            dict(
-                path=f"{path}_new",
-                processed=True,
-            )
-        ]
-        return dict(new_images=new_images)
+def _copy_and_edit_image(
+    root_dir: str,
+    path: str,
+    buffer: dict[str, Any],
+) -> dict[str, Any]:
+    new_images = [
+        dict(
+            path=f"{path}_new",
+            processed=True,
+        )
+    ]
+    return dict(new_images=new_images)
 
+
+@pytest.mark.parametrize(
+    "parallelization_list",
+    [
+        None,
+        [
+            dict(path="plate.zarr/A/01/0"),
+            dict(path="plate.zarr/A/02/0"),
+        ],
+    ],
+)
+def test_image_attribute_propagation(
+    parallelization_list: Optional[list[dict]],
+):
     images_pre = [
         dict(path="plate.zarr/A/01/0", plate="plate.zarr", well="A/01"),
         dict(path="plate.zarr/A/02/0", plate="plate.zarr", well="A/02"),
@@ -66,6 +80,7 @@ def test_image_attribute_propagation():
         id=1,
         root_dir="/tmp/invalid",
         images=images_pre,
+        parallelization_list=parallelization_list,
     )
     wf_task_list = [
         WorkflowTask(
@@ -77,8 +92,6 @@ def test_image_attribute_propagation():
     ]
     dataset_post = apply_workflow(wf_task_list=wf_task_list, dataset=dataset_pre)
     images_post = dataset_post.images
-
-    print()
 
     debug(images_pre)
     debug(images_post)

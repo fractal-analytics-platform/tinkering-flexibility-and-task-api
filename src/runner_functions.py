@@ -25,7 +25,7 @@ def _run_non_parallel_task(
 def _run_parallel_task(
     task: Task,
     list_function_kwargs: list[dict[str, Any]],
-    images: list[SingleImage],
+    old_dataset_images: list[SingleImage],
 ) -> dict[str, Any]:
 
     if len(list_function_kwargs) > MAX_PARALLELIZATION_LIST_SIZE:
@@ -60,7 +60,7 @@ def _run_parallel_task(
         for new_image in _out.get("new_images", []):
             # Propagate old-image attributes to new-image
             old_image = find_image_by_path(
-                images=images,
+                images=old_dataset_images,
                 path=new_old_image_mapping[new_image["path"]],
             )
             actual_new_image = old_image
