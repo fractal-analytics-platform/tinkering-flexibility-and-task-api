@@ -3,3 +3,4 @@ devtools
 pre-commit
 ruff
 termcolor
+pytest

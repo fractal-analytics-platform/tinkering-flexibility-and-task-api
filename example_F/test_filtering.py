@@ -1,4 +1,4 @@
-from runner import _filter_image_list
+from filters import _filter_image_list
 
 images = [
     dict(
@@ -43,35 +43,37 @@ images = [
     ),
 ]
 
-filters = dict(invalid=True)
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 0
 
-# FIXME: this currently fails
-# filters = dict(invalid=False)
-# filtered_list = _filter_image_list(images=images, filters=filters)
-# assert len(filtered_list) == 0
+def test_filter_image_list():
 
-filters = dict(data_dimensionality=3)
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 4
+    filters = dict(invalid=True)
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 0
 
-filters = dict(data_dimensionality=2)
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 2
+    filters = dict(invalid=False)
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 0
 
-filters = dict(data_dimensionality=3, illumination_correction=True)
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 2
+    filters = dict(data_dimensionality=3)
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 4
 
-filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate_2d.zarr")
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 0
+    filters = dict(data_dimensionality=2)
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 2
 
-filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate.zarr")
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 2
+    filters = dict(data_dimensionality=3, illumination_correction=True)
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 2
 
-filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate.zarr", well="A/01")
-filtered_list = _filter_image_list(images=images, filters=filters)
-assert len(filtered_list) == 1
+    filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate_2d.zarr")
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 0
+
+    filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate.zarr")
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 2
+
+    filters = dict(data_dimensionality=3, illumination_correction=True, plate="plate.zarr", well="A/01")
+    filtered_list = _filter_image_list(images=images, filters=filters)
+    assert len(filtered_list) == 1
