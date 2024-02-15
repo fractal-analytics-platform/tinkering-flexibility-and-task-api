@@ -45,6 +45,7 @@ def _run_parallel_task(
             new_old_image_mapping.update(
                 {new_image["path"]: function_kwargs["path"] for new_image in task_output["new_images"]}
             )
+        # FIXME Yuri: create strict ParalleTaskOutput, without buffer and parallelization_list
         TaskOutput(**task_output)
         task_outputs.append(copy(task_output))
 
@@ -52,6 +53,7 @@ def _run_parallel_task(
     task_output = {}
 
     # TODO: clean-up parallel metadata merge
+    # FIXME Yuri: represent current merge strategies in test_run_parallel_task
 
     # Merge new/edited images
     _new_images = []
