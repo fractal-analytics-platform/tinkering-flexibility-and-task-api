@@ -1,6 +1,7 @@
 from copy import copy
 from typing import Any
 
+from env import MAX_PARALLELIZATION_LIST_SIZE
 from models import Task
 from models import TaskOutput
 from utils import pjson
@@ -23,6 +24,13 @@ def _run_parallel_task(
     task: Task,
     list_function_kwargs: list[dict[str, Any]],
 ) -> dict[str, Any]:
+
+    if len(list_function_kwargs) > MAX_PARALLELIZATION_LIST_SIZE:
+        raise ValueError(
+            "Too many parallelization items.\n"
+            f"   {len(list_function_kwargs)=}\n"
+            f"   {MAX_PARALLELIZATION_LIST_SIZE=}\n"
+        )
 
     task_outputs = []
     mapping = {}

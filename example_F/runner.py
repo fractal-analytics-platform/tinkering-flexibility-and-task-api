@@ -1,10 +1,10 @@
 from copy import copy
 from copy import deepcopy
 
-from env import MAX_PARALLELIZATION_LIST_SIZE
 from filters import filter_images
-from images import _apply_attributes_to_image
+from filters import FilterSet
 from images import _deduplicate_image_list
+from images import SingleImage
 from models import Dataset
 from models import TaskOutput
 from models import WorkflowTask
@@ -12,6 +12,17 @@ from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
 from termcolor import cprint
 from utils import ipjson
+
+
+def _apply_attributes_to_image(
+    *,
+    image: SingleImage,
+    filters: FilterSet,
+) -> SingleImage:
+    updated_image = deepcopy(image)
+    for key, value in filters.items():
+        updated_image[key] = value
+    return updated_image
 
 
 def apply_workflow(

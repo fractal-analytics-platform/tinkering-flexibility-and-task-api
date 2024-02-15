@@ -1,57 +1,63 @@
 from typing import Any
-from typing import Optional
 
+import pytest
 from devtools import debug
+from env import MAX_PARALLELIZATION_LIST_SIZE
 from models import Dataset
-from models import FilterSet
 from models import Task
-from pydantic import BaseModel
-from pydantic import Field
+from models import WorkflowTask
 from runner import apply_workflow
 
 
-class WorkflowTask(BaseModel):
-    id: int
-    task_id: int
-    args: dict[str, Any] = Field(default_factory=dict)
-    meta: dict[str, Any] = Field(default_factory=dict)
-    task: Optional[Task] = None
-    filters: FilterSet = Field(default_factory=dict)
+def dummy_task(*args, **kwargs):
+    return {}
 
 
-def create_images_from_scratch(
-    root_dir: str,
-    paths: list[str],
-    buffer: dict[str, Any],
-) -> dict[str, Any]:
-    new_images = [
-        dict(path="a"),
-        dict(path="b"),
-        dict(path="c"),
-    ]
-    return dict(new_images=new_images)
-
-
-def edit_images(root_dir: str, path: str, buffer: dict[str, Any], custom_parameter: int = 1) -> dict[str, Any]:
-    edited_images = [dict(path=path)]
-    return dict(edited_images=edited_images)
-
-
-def copy_and_edit_image(
-    root_dir: str,
-    path: str,
-    buffer: dict[str, Any],
-) -> dict[str, Any]:
-    new_images = [
+@pytest.mark.parametrize("N", [100, 1000])
+def test_max_parallelization_list_size(N: int):
+    parallelization_list = [
         dict(
-            path=f"{path}_new",
-            processed=True,
+            path=f"image-{i}",
+            parameter=i,
+        )
+        for i in range(N)
+    ]
+    dataset = Dataset(
+        id=1,
+        root_dir="/tmp/invalid",
+        parallelization_list=parallelization_list,
+    )
+    wf_task_list = [
+        WorkflowTask(
+            task=Task(
+                task_type="parallel",
+                function=dummy_task,
+            ),
         )
     ]
-    return dict(new_images=new_images)
+    if N < MAX_PARALLELIZATION_LIST_SIZE:
+        debug(N, "OK")
+        apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+    else:
+        with pytest.raises(ValueError) as e:
+            apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+        debug(N, str(e.value))
 
 
 def test_image_attribute_propagation():
+    def _copy_and_edit_image(
+        root_dir: str,
+        path: str,
+        buffer: dict[str, Any],
+    ) -> dict[str, Any]:
+        new_images = [
+            dict(
+                path=f"{path}_new",
+                processed=True,
+            )
+        ]
+        return dict(new_images=new_images)
+
     images_pre = [
         dict(path="plate.zarr/A/01/0", plate="plate.zarr", well="A/01"),
         dict(path="plate.zarr/A/02/0", plate="plate.zarr", well="A/02"),
@@ -63,12 +69,9 @@ def test_image_attribute_propagation():
     )
     wf_task_list = [
         WorkflowTask(
-            id=1,
-            task_id=1,
             task=Task(
-                id=1,
                 task_type="parallel",
-                function=copy_and_edit_image,
+                function=_copy_and_edit_image,
             ),
         )
     ]
