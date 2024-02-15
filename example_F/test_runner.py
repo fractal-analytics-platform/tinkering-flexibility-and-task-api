@@ -2,6 +2,7 @@ from typing import Any
 from typing import Optional
 
 import pytest
+from devtools import debug
 from env import MAX_PARALLELIZATION_LIST_SIZE
 from models import Dataset
 from models import FilterSet
@@ -50,7 +51,9 @@ def test_max_parallelization_list_size(N: int):
         )
     ]
     if N < MAX_PARALLELIZATION_LIST_SIZE:
+        debug(N, "OK")
         apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
     else:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as e:
             apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+        debug(N, str(e.value))
