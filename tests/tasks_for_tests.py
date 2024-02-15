@@ -31,3 +31,7 @@ def copy_and_edit_image(
 def print_path(root_dir: str, path: str, buffer: dict[str, Any], custom_parameter: int = 1) -> dict[str, Any]:
     print(f"{path=}")
     return {}
+
+
+def dummy_task(*args, **kwargs):
+    return {}

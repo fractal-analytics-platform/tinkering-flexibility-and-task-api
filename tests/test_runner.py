@@ -9,9 +9,7 @@ from models import Task
 from models import WorkflowTask
 from runner import apply_workflow
 
-
-def dummy_task(*args, **kwargs):
-    return {}
+from tests.tasks_for_tests import dummy_task
 
 
 @pytest.mark.parametrize("N", [100, 1000])
