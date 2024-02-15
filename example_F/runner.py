@@ -109,9 +109,8 @@ def apply_workflow(
                         )
                     )
                     # FIXME use "set" on the final list
-                # FIXME kwargs.path poi cerca in tmp_dataset.images l'immagine con quel path e costruisci
-                filtered_images = [] # (ordinata come list_function_kwargs)
-                # FIXME change name `filtered_images`
+                # FIXME kwargs.path poi cerca in tmp_dataset.images l'immagine con quel path e costruisci (ordinata come list_function_kwargs)
+                filtered_images = [] # FIXME change name `filtered_images`
 
             task_output = _run_parallel_task(
                 task=task,
