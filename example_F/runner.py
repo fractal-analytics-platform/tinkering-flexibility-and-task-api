@@ -40,7 +40,7 @@ def _deduplicate_image_list(
 def apply_workflow(
     wf_task_list: list[WorkflowTask],
     dataset: Dataset,
-):
+) -> Dataset:
     def print(x):
         return cprint(x, "magenta")
 
@@ -194,3 +194,5 @@ def apply_workflow(
         print(f"AFTER RUNNING {task.name}, we have this dataset:")
         print(ipjson(tmp_dataset.dict()))
         print("\n" + "-" * 88 + "\n")
+
+        return tmp_dataset
