@@ -3,10 +3,11 @@ from typing import Any
 
 from env import MAX_PARALLELIZATION_LIST_SIZE
 from images import find_image_by_path
+from models import SingleImage
 from models import Task
 from models import TaskOutput
-from models import SingleImage
 from utils import pjson
+
 
 def _run_non_parallel_task(
     task: Task,
@@ -42,11 +43,7 @@ def _run_parallel_task(
             task_output = {}
         if task_output.get("new_images") is not None:
             new_old_image_mapping.update(
-                {
-                    new_image["path"]: function_kwargs["path"]
-                    for new_image in task_output["new_images"]
-                }
-                # {"plate.zarr/A/01/0_new": "plate.zarr/A/01/0", ..}
+                {new_image["path"]: function_kwargs["path"] for new_image in task_output["new_images"]}
             )
         TaskOutput(**task_output)
         task_outputs.append(copy(task_output))
@@ -60,12 +57,16 @@ def _run_parallel_task(
     _new_images = []
     _edited_images = []
     for _out in task_outputs:
-        for _new_image in _out.get("new_images", []):
-            
+        for new_image in _out.get("new_images", []):
+            # Propagate old-image attributes to new-image
             old_image = find_image_by_path(
-                images=images, path=new_old_image_mapping[_new_image["path"]]
+                images=images,
+                path=new_old_image_mapping[new_image["path"]],
             )
-            _new_images.append({**old_image, **_new_image})
+            actual_new_image = old_image
+            actual_new_image.update(new_image)
+
+            _new_images.append(actual_new_image)
         for _edited_image in _out.get("edited_images", []):
             _edited_images.append(_edited_image)
     if _new_images:
