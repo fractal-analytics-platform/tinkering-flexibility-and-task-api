@@ -7,6 +7,7 @@ from images import _deduplicate_image_list
 from images import find_image_by_path
 from images import SingleImage
 from models import Dataset
+from models import KwargsType
 from models import WorkflowTask
 from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
@@ -24,6 +25,20 @@ def _apply_attributes_to_image(
     for key, value in filters.items():
         updated_image[key] = value
     return updated_image
+
+
+def _validate_parallelization_list_valid(
+    parallelization_list: list[KwargsType],
+    current_image_paths: list[SingleImage],
+) -> None:
+    for kwargs in parallelization_list:
+        path = kwargs.get("path")
+        if path is None:
+            raise ValueError("An element in parallelization list has no path:\n" f"{kwargs=}")
+        if path not in current_image_paths:
+            raise ValueError("An element in parallelization list does not match " f"with any image:\n{kwargs=}")
+        if "buffer" in kwargs.keys() or "root_dir" in kwargs.keys():
+            raise ValueError(f"An element in parallelization list is not valid:\n{kwargs=}")
 
 
 def apply_workflow(
@@ -49,10 +64,11 @@ def apply_workflow(
 
         # Extract parallelization_list
         if tmp_dataset.parallelization_list is not None:
-            # FIXME if parallelization_list exists,
-            # then all items must have a `path`
-            # all `path` must be in images # CHECK
             parallelization_list = tmp_dataset.parallelization_list
+            _validate_parallelization_list_valid(
+                parallelization_list=parallelization_list,
+                current_image_paths=tmp_dataset.image_paths,
+            )
         else:
             parallelization_list = None
 
@@ -102,8 +118,6 @@ def apply_workflow(
                 # Use pre-made parallelization_list
                 list_function_kwargs = parallelization_list
                 for ind, _ in enumerate(list_function_kwargs):
-                    # FIXME: if path is not in the keys, fail
-                    # FIXME: there cannot be root_dir or buffer
                     # FIXME: error or warning in case of overlapping keys
                     list_function_kwargs[ind].update(
                         dict(
@@ -129,6 +143,7 @@ def apply_workflow(
         # Redundant validation step (useful especially to check the merged
         # output of a parallel task)
         TaskOutput(**task_output)
+
         # FIXME if parallelization_list exists,
         # then all items must have a `path`
         # all `path` must be in images # CHECK
@@ -181,7 +196,14 @@ def apply_workflow(
         tmp_dataset.buffer = task_output.get("buffer")
 
         # Update Dataset.parallelization_list
-        tmp_dataset.parallelization_list = task_output.get("parallelization_list")
+        # NOTE: this mut be done *after* Dataset.images was updated
+        new_parallelization_list = task_output.get("parallelization_list")
+        if new_parallelization_list is not None:
+            _validate_parallelization_list_valid(
+                parallelization_list=new_parallelization_list,
+                current_image_paths=tmp_dataset.image_paths,
+            )
+        tmp_dataset.parallelization_list = new_parallelization_list
 
         # Update Dataset.history
         tmp_dataset.history.append(task.name)
