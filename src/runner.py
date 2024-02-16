@@ -138,7 +138,7 @@ def apply_workflow(
         # all `path` must be in images # CHECK
 
         # Decorate new images with source-image attributes
-        new_images = task_output.get("new_images", [])
+        new_images = task_output.get("new_images") or []
         for ind, new_image in enumerate(new_images):
             pass
             # FIXME: missing
@@ -147,7 +147,7 @@ def apply_workflow(
         # Construct up-to-date filters
         new_filters = copy(tmp_dataset.filters)
         new_filters.update(task.new_filters)
-        actual_task_new_filters = task_output.get("new_filters", {})
+        actual_task_new_filters = task_output.get("new_filters") or {}
         new_filters.update(actual_task_new_filters)
         print(f"Dataset old filters:\n{ipjson(tmp_dataset.filters)}")
         print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
@@ -155,14 +155,14 @@ def apply_workflow(
         print(f"Combined new filters:\n{ipjson(new_filters)}")
 
         # Add filters to edited images, and update Dataset.images
-        edited_images = task_output.get("edited_images", [])
+        edited_images = task_output.get("edited_images") or []
         edited_paths = [image["path"] for image in edited_images]
         for ind, image in enumerate(tmp_dataset.images):
             if image["path"] in edited_paths:
                 updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
                 tmp_dataset.images[ind] = updated_image
         # Add filters to new images
-        new_images = task_output.get("new_images", [])
+        new_images = task_output.get("new_images") or []
         for ind, image in enumerate(new_images):
             updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
             new_images[ind] = updated_image
@@ -183,10 +183,10 @@ def apply_workflow(
         tmp_dataset.filters = new_filters
 
         # Update Dataset.buffer
-        tmp_dataset.buffer = task_output.get("buffer", None)
+        tmp_dataset.buffer = task_output.get("buffer")
 
         # Update Dataset.parallelization_list
-        tmp_dataset.parallelization_list = task_output.get("parallelization_list", None)
+        tmp_dataset.parallelization_list = task_output.get("parallelization_list")
 
         # Update Dataset.history
         tmp_dataset.history.append(task.name)
