@@ -7,6 +7,7 @@ from filters import FilterSet
 from images import SingleImage
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import validator
 
 
 KwargsType = dict[str, Any]
@@ -35,6 +36,20 @@ class Task(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
     new_filters: dict[str, Any] = Field(default_factory=dict)  # FIXME: this is not using FilterSet any more!
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
+
+    @validator("new_filters")
+    def scalar_filters(cls, v):
+        """
+        Check that values of new_filters are all JSON-scalar.
+
+        Replacement for `new_filters: FilterSet` attribute type, which
+        does not work in Pydantic.
+        """
+        for value in v.values():
+            if type(value) not in [int, str, bool] and value is not None:
+                raise ValueError(f"{value=} in new_filters has invalid type {type(value)}")
+
+        return v
 
     @property
     def name(self) -> str:

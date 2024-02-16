@@ -16,7 +16,7 @@ class TaskOutput(BaseModel):
     edited_images: Optional[list[SingleImage]] = None
     """List of images edited by a given task instance."""
 
-    new_filters: Optional[FilterSet] = None
+    new_filters: Optional[FilterSet] = None  # FIXME: this does not actually work in Pydantic
     """
     *Global* filters (common to all images) added by this task.
 
