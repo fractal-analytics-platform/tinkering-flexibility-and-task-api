@@ -16,11 +16,11 @@ def create_images_from_scratch(
     root_dir: str,
     paths: list[str],
     buffer: dict[str, Any],
-    custom_paths: Optional[list[str]] = None,
+    new_paths: Optional[list[str]] = None,
 ) -> dict[str, Any]:
-    if custom_paths is None:
-        custom_paths = ["a", "b", "c"]
-    new_images = [dict(path=path) for path in custom_paths]
+    if new_paths is None:
+        new_paths = ["a", "b", "c"]
+    new_images = [dict(path=new_path) for new_path in new_paths]
     return dict(new_images=new_images)
 
 
