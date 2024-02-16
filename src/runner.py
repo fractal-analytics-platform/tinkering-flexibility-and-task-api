@@ -94,6 +94,7 @@ def apply_workflow(
                 task_output = _run_non_parallel_task(
                     task=task,
                     function_kwargs=function_kwargs,
+                    old_dataset_images=filtered_images,
                 )
         # (2/2) Parallel task
         elif task.task_type == "parallel":
