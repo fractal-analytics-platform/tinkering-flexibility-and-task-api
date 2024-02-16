@@ -147,10 +147,6 @@ def apply_workflow(
 
         # Decorate new images with source-image attributes
         new_images = task_output.get("new_images", [])
-        for ind, new_image in enumerate(new_images):
-            pass
-            # FIXME: missing
-            # new_images[ind] = actual_new_image
 
         # Construct up-to-date filters
         new_filters = copy(tmp_dataset.filters)
