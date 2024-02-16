@@ -7,19 +7,20 @@ from images import _deduplicate_image_list
 from images import find_image_by_path
 from images import SingleImage
 from models import Dataset
-from task_output import TaskOutput
 from models import WorkflowTask
 from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
+from task_output import TaskOutput
 from termcolor import cprint
 from utils import ipjson
+
 
 def _apply_attributes_to_image(
     *,
     image: SingleImage,
     filters: FilterSet,
 ) -> SingleImage:
-    updated_image = deepcopy(image)
+    updated_image = copy(image)
     for key, value in filters.items():
         updated_image[key] = value
     return updated_image
@@ -48,7 +49,7 @@ def apply_workflow(
 
         # Extract parallelization_list
         if tmp_dataset.parallelization_list is not None:
-            # FIXME if parallelization_list exists, 
+            # FIXME if parallelization_list exists,
             # then all items must have a `path`
             # all `path` must be in images # CHECK
             parallelization_list = tmp_dataset.parallelization_list
@@ -112,14 +113,9 @@ def apply_workflow(
                         )
                     )
                     # FIXME use "set" on the final list
-                # FIXME kwargs.path poi cerca in tmp_dataset.images l'immagine con quel path e costruisci (ordinata come list_function_kwargs)
-                
 
                 filtered_images = [
-                    find_image_by_path(
-                        images=tmp_dataset.images,
-                        path=kwargs["path"]
-                    )
+                    find_image_by_path(images=tmp_dataset.images, path=kwargs["path"])
                     for kwargs in list_function_kwargs
                 ]  # FIXME change name `filtered_images`
             task_output = _run_parallel_task(
@@ -133,7 +129,7 @@ def apply_workflow(
         # Redundant validation step (useful especially to check the merged
         # output of a parallel task)
         TaskOutput(**task_output)
-        # FIXME if parallelization_list exists, 
+        # FIXME if parallelization_list exists,
         # then all items must have a `path`
         # all `path` must be in images # CHECK
 
@@ -151,9 +147,7 @@ def apply_workflow(
         new_filters.update(actual_task_new_filters)
         print(f"Dataset old filters:\n{ipjson(tmp_dataset.filters)}")
         print(f"Task.new_filters:\n{ipjson(task.new_filters)}")
-        print(
-            f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}"
-        )
+        print(f"Actual new filters from task:\n{ipjson(actual_task_new_filters)}")
         print(f"Combined new filters:\n{ipjson(new_filters)}")
 
         # Add filters to edited images, and update Dataset.images
@@ -161,19 +155,14 @@ def apply_workflow(
         edited_paths = [image["path"] for image in edited_images]
         for ind, image in enumerate(tmp_dataset.images):
             if image["path"] in edited_paths:
-                updated_image = _apply_attributes_to_image(
-                    image=image, filters=new_filters
-                )
+                updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
                 tmp_dataset.images[ind] = updated_image
         # Add filters to new images
         new_images = task_output.get("new_images", [])
         for ind, image in enumerate(new_images):
-            updated_image = _apply_attributes_to_image(
-                image=image, filters=new_filters
-            )
+            updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
             new_images[ind] = updated_image
         new_images = _deduplicate_image_list(new_images)
-
 
         # Add new images to Dataset.images
         for image in new_images:
