@@ -1,4 +1,5 @@
 from typing import Any
+from typing import Optional
 
 
 def dummy_task(*args, **kwargs):
@@ -15,12 +16,11 @@ def create_images_from_scratch(
     root_dir: str,
     paths: list[str],
     buffer: dict[str, Any],
+    custom_paths: Optional[list[str]] = None,
 ) -> dict[str, Any]:
-    new_images = [
-        dict(path="a"),
-        dict(path="b"),
-        dict(path="c"),
-    ]
+    if custom_paths is None:
+        custom_paths = ["a", "b", "c"]
+    new_images = [dict(path=path) for path in custom_paths]
     return dict(new_images=new_images)
 
 
