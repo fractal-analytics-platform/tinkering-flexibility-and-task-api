@@ -25,6 +25,10 @@ class Dataset(BaseModel):
     # Removed from V1
     # resource_list (relationship)
 
+    @property
+    def image_paths(self) -> list[str]:
+        return [image["path"] for image in self.images]
+
 
 class Task(BaseModel):
     function: Callable  # mock of task.command
