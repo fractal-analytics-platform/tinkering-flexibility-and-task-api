@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from devtools import debug
+from images import find_image_by_path
 from models import Dataset
 from models import Workflow
 from models import WorkflowTask
@@ -32,6 +33,16 @@ def test_workflow_1(tmp_path: Path):
         ],
         dataset=dataset_in,
     )
+
+    debug(dataset_out.history)
+    assert dataset_out.history == [
+        "create_ome_zarr",
+        "yokogawa_to_zarr",
+        "illumination_correction",
+        "new_ome_zarr",
+        "maximum_intensity_projection",
+    ]
+
     debug(dataset_out.images)
     assert set(dataset_out.image_paths) == {
         "my_plate.zarr/A/01/0",
@@ -40,6 +51,23 @@ def test_workflow_1(tmp_path: Path):
         "my_plate.zarr/A/01/0_corr",
         "my_plate_mip.zarr/A/01/0_corr",
         "my_plate_mip.zarr/A/02/0_corr",
+    }
+    img = find_image_by_path(path="my_plate.zarr/A/01/0_corr", images=dataset_out.images)
+    assert img == {
+        "path": "my_plate.zarr/A/01/0_corr",
+        "well": "A_01",
+        "plate": "my_plate.zarr",
+        "data_dimensionality": "3",
+        "illumination_correction": True,
+    }
+
+    img = find_image_by_path(path="my_plate_mip.zarr/A/01/0_corr", images=dataset_out.images)
+    assert img == {
+        "path": "my_plate_mip.zarr/A/01/0_corr",
+        "well": "A_01",
+        "plate": "my_plate_mip.zarr",
+        "data_dimensionality": "2",
+        "illumination_correction": True,
     }
 
 
