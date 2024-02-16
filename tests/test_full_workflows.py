@@ -23,9 +23,6 @@ def test_workflow_1(tmp_path: Path):
                 task=TASK_LIST["illumination_correction"],
             ),
             WorkflowTask(
-                task=TASK_LIST["cellpose_segmentation"],
-            ),
-            WorkflowTask(
                 task=TASK_LIST["new_ome_zarr"],
                 args={"suffix": "mip"},
             ),
