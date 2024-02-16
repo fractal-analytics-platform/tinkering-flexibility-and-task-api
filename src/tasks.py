@@ -3,6 +3,7 @@ from typing import Any
 from typing import Literal
 from typing import Optional
 
+from models import Task
 from termcolor import cprint
 
 
@@ -380,3 +381,25 @@ def init_registration(
 
     print("[init_registration] END")
     return dict(parallelization_list=parallelization_list)
+
+
+TASK_LIST = {
+    "create_ome_zarr": Task(function=create_ome_zarr, task_type="non_parallel"),
+    "yokogawa_to_zarr": Task(function=yokogawa_to_zarr, task_type="parallel"),
+    "create_ome_zarr_multiplex": Task(function=create_ome_zarr_multiplex, task_type="non_parallel"),
+    "cellpose_segmentation": Task(function=cellpose_segmentation, task_type="parallel"),
+    "new_ome_zarr": Task(function=new_ome_zarr, task_type="non_parallel"),
+    "copy_data": Task(function=copy_data, task_type="parallel"),
+    "illumination_correction": Task(
+        function=illumination_correction,
+        task_type="parallel",
+        new_filters=dict(illumination_correction=True),
+    ),
+    "maximum_intensity_projection": Task(
+        function=maximum_intensity_projection,
+        task_type="parallel",
+        new_filters=dict(data_dimensionality="2"),
+    ),
+    "init_channel_parallelization": Task(function=init_channel_parallelization, task_type="non_parallel"),
+    "init_registration": Task(function=init_registration, task_type="non_parallel"),
+}

@@ -210,4 +210,4 @@ def apply_workflow(
         print(ipjson(tmp_dataset.dict()))
         print("\n" + "-" * 88 + "\n")
 
-        return tmp_dataset
+    return tmp_dataset
