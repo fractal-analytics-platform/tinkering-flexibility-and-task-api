@@ -16,6 +16,9 @@ from termcolor import cprint
 from utils import ipjson
 
 
+# FIXME: define RESERVED_ARGUMENTS = ["buffer", ...]
+
+
 def _apply_attributes_to_image(
     *,
     image: SingleImage,
