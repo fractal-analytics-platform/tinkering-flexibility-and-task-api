@@ -169,6 +169,7 @@ def new_ome_zarr(
 
     print("[new_ome_zarr] START")
     print(f"[new_ome_zarr] {root_dir=}")
+    print(f"[new_ome_zarr] {paths=}")
     print(f"[new_ome_zarr] Identified {shared_plate=}")
 
     assert shared_plate.endswith(".zarr")
