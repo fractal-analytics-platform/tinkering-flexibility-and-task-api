@@ -1,44 +1,13 @@
+import pytest
 from devtools import debug
 from models import Dataset
 from models import Task
 from models import WorkflowTask
+from runner import _validate_parallelization_list_valid
 from runner import apply_workflow
 
 from tests.tasks_for_tests import create_images_from_scratch
 from tests.tasks_for_tests import print_path
-
-"""
-from models import Workflow
-from tests.tasks_for_tests import copy_and_edit_image
-from tests.tasks_for_tests import edit_image
-from tests.tasks_for_tests import print_path
-
-
-dataset = Dataset(id=1, root_dir="/invalid")
-
-        WorkflowTask(
-            task=Task(task_type="parallel", function=edit_image, new_filters=dict(key="value")),
-        ),
-        # a, b, c all with key=value
-        # dataset.filters key=value
-        WorkflowTask(
-            task=Task(
-                task_type="parallel",
-                function=copy_and_edit_image,
-            ),
-        ),
-        # a, b, c all with key=value
-        # d, e, f
-        # dataset.filters key=value
-        WorkflowTask(
-            task=Task(
-                task_type="parallel",
-                function=print_path,
-            ),
-        ),
-    ],
-)
-"""
 
 
 def test_single_non_parallel_task():
@@ -59,6 +28,7 @@ def test_single_non_parallel_task():
 
 
 def test_single_parallel_task_no_parallization_list():
+    """This is currently not very useful"""
     IMAGES = [dict(path="A/01/0"), dict(path="A/02/0")]
     dataset_in = Dataset(id=1, root_dir="/invalid", images=IMAGES)
     task_list = [
@@ -71,3 +41,63 @@ def test_single_parallel_task_no_parallization_list():
     ]
     dataset_out = apply_workflow(wf_task_list=task_list, dataset=dataset_in)
     debug(dataset_out.image_paths)
+
+
+def test_unit_validate_parallelization_list():
+
+    # Missing path
+    PARALLELIZATION_LIST = [dict()]
+    CURRENT_IMAGE_PATHS = []
+    with pytest.raises(ValueError):
+        _validate_parallelization_list_valid(
+            parallelization_list=PARALLELIZATION_LIST,
+            current_image_paths=CURRENT_IMAGE_PATHS,
+        )
+
+    # Path not in current image paths
+    PARALLELIZATION_LIST = [dict(path="asd")]
+    CURRENT_IMAGE_PATHS = []
+    with pytest.raises(ValueError):
+        _validate_parallelization_list_valid(
+            parallelization_list=PARALLELIZATION_LIST,
+            current_image_paths=CURRENT_IMAGE_PATHS,
+        )
+
+    # Invalid buffer attributes
+    PARALLELIZATION_LIST = [dict(path="asd", buffer={})]
+    CURRENT_IMAGE_PATHS = ["asd"]
+    with pytest.raises(ValueError):
+        _validate_parallelization_list_valid(
+            parallelization_list=PARALLELIZATION_LIST,
+            current_image_paths=CURRENT_IMAGE_PATHS,
+        )
+
+    # Invalid `buffer`` attribute
+    PARALLELIZATION_LIST = [dict(path="asd", buffer={})]
+    CURRENT_IMAGE_PATHS = ["asd"]
+    with pytest.raises(ValueError):
+        _validate_parallelization_list_valid(
+            parallelization_list=PARALLELIZATION_LIST,
+            current_image_paths=CURRENT_IMAGE_PATHS,
+        )
+
+    # Invalid `root_dir` attribute
+    PARALLELIZATION_LIST = [dict(path="asd", root_dir="/something")]
+    CURRENT_IMAGE_PATHS = ["asd"]
+    with pytest.raises(ValueError):
+        _validate_parallelization_list_valid(
+            parallelization_list=PARALLELIZATION_LIST,
+            current_image_paths=CURRENT_IMAGE_PATHS,
+        )
+
+    # Valid call
+    PARALLELIZATION_LIST = [
+        dict(path="asd", parameter=1),
+        dict(path="asd", parameter=2),
+        dict(path="asd", parameter=3),
+    ]
+    CURRENT_IMAGE_PATHS = ["asd"]
+    _validate_parallelization_list_valid(
+        parallelization_list=PARALLELIZATION_LIST,
+        current_image_paths=CURRENT_IMAGE_PATHS,
+    )

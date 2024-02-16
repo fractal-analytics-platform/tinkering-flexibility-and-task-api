@@ -32,14 +32,12 @@ def find_image_by_path(
         raise ValueError(f"No image with {path=} found in image list.")
 
 
-def _deduplicate_image_list(
-    image_list: list[SingleImage],
-) -> list[SingleImage]:
+def _deduplicate_list_of_dicts(list_of_dicts: list[dict]) -> list[dict]:
     """
     Custom replacement for `set(list_of_dict)`, since `dict` is not hashable.
     """
-    new_image_list = []
-    for image in image_list:
-        if image not in new_image_list:
-            new_image_list.append(image)
-    return new_image_list
+    new_list_of_dicts = []
+    for my_dict in list_of_dicts:
+        if my_dict not in new_list_of_dicts:
+            new_list_of_dicts.append(my_dict)
+    return new_list_of_dicts

@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from filters import filter_images
 from filters import FilterSet
-from images import _deduplicate_image_list
+from images import _deduplicate_list_of_dicts
 from images import find_image_by_path
 from images import SingleImage
 from models import Dataset
@@ -65,6 +65,7 @@ def apply_workflow(
         # Extract parallelization_list
         if tmp_dataset.parallelization_list is not None:
             parallelization_list = tmp_dataset.parallelization_list
+            parallelization_list = _deduplicate_list_of_dicts(parallelization_list)
             _validate_parallelization_list_valid(
                 parallelization_list=parallelization_list,
                 current_image_paths=tmp_dataset.image_paths,
@@ -144,10 +145,6 @@ def apply_workflow(
         # output of a parallel task)
         TaskOutput(**task_output)
 
-        # FIXME if parallelization_list exists,
-        # then all items must have a `path`
-        # all `path` must be in images # CHECK
-
         # Decorate new images with source-image attributes
         new_images = task_output.get("new_images", [])
         for ind, new_image in enumerate(new_images):
@@ -177,7 +174,7 @@ def apply_workflow(
         for ind, image in enumerate(new_images):
             updated_image = _apply_attributes_to_image(image=image, filters=new_filters)
             new_images[ind] = updated_image
-        new_images = _deduplicate_image_list(new_images)
+        new_images = _deduplicate_list_of_dicts(new_images)
 
         # Add new images to Dataset.images
         for image in new_images:
