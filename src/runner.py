@@ -7,7 +7,7 @@ from images import _deduplicate_image_list
 from images import find_image_by_path
 from images import SingleImage
 from models import Dataset
-from models import TaskOutput
+from task_output import TaskOutput
 from models import WorkflowTask
 from runner_functions import _run_non_parallel_task
 from runner_functions import _run_parallel_task
@@ -48,6 +48,9 @@ def apply_workflow(
 
         # Extract parallelization_list
         if tmp_dataset.parallelization_list is not None:
+            # FIXME if parallelization_list exists, 
+            # then all items must have a `path`
+            # all `path` must be in images # CHECK
             parallelization_list = tmp_dataset.parallelization_list
         else:
             parallelization_list = None
@@ -130,6 +133,9 @@ def apply_workflow(
         # Redundant validation step (useful especially to check the merged
         # output of a parallel task)
         TaskOutput(**task_output)
+        # FIXME if parallelization_list exists, 
+        # then all items must have a `path`
+        # all `path` must be in images # CHECK
 
         # Decorate new images with source-image attributes
         new_images = task_output.get("new_images", [])
