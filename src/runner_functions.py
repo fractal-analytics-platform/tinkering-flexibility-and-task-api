@@ -2,11 +2,11 @@ from copy import copy
 from typing import Any
 
 from env import MAX_PARALLELIZATION_LIST_SIZE
-from images import find_image_by_path
 from models import SingleImage
 from models import Task
-from task_output import TaskOutput
+from task_output import merge_outputs
 from task_output import ParallelTaskOutput
+from task_output import TaskOutput
 from utils import pjson
 
 
@@ -39,15 +39,12 @@ def _run_parallel_task(
     task_outputs = []
     new_old_image_mapping = {}
     for function_kwargs in list_function_kwargs:
-        
+
         task_output = task.function(**function_kwargs) or {}
 
         if task_output.get("new_images") is not None:
             new_old_image_mapping.update(
-                {
-                    new_image["path"]: function_kwargs["path"]
-                    for new_image in task_output["new_images"]
-                }
+                {new_image["path"]: function_kwargs["path"] for new_image in task_output["new_images"]}
             )
 
         ParallelTaskOutput(**task_output)
@@ -59,58 +56,4 @@ def _run_parallel_task(
         old_dataset_images,
     )
 
-    return task_output
-
-
-
-def merge_outputs(
-        task_outputs: list[ParallelTaskOutput],
-        new_old_image_mapping: dict[str, str],
-        old_dataset_images: list[SingleImage],
-    ):
-
-    # Merge processed images # FIXME
-    task_output = {}
-
-    # TODO: clean-up parallel metadata merge
-    # FIXME Yuri: represent current merge strategies in test_run_parallel_task
-
-    # Merge new/edited images
-    _new_images = []
-    _edited_images = []
-    
-    for _out in task_outputs:
-        for new_image in _out.get("new_images", []):
-            # Propagate old-image attributes to new-image
-            old_image = find_image_by_path(
-                images=old_dataset_images,
-                path=new_old_image_mapping[new_image["path"]],
-            )
-            actual_new_image = old_image
-            actual_new_image.update(new_image)
-
-            _new_images.append(actual_new_image)
-        for _edited_image in _out.get("edited_images", []):
-            _edited_images.append(_edited_image)
-    if _new_images:
-        task_output["new_images"] = _new_images
-    if _edited_images:
-        task_output["edited_images"] = _edited_images
-
-    # Merge new filters
-    _new_filters = None
-    for _out in task_outputs:
-        current_filters = _out.get("new_filters", None)
-        if current_filters is None:
-            pass
-        else:
-            if _new_filters is None:
-                _new_filters = current_filters
-            else:
-                if _new_filters != current_filters:
-                    raise ValueError(f"{current_filters=} but {_new_filters=}")
-    if _new_filters:
-        task_output["new_filters"] = _new_filters
-
-    print(f"Merged task output:\n{pjson(task_output)}")
     return task_output
