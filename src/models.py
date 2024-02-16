@@ -43,6 +43,13 @@ class TaskOutput(BaseModel):
     class Config:
         extra = "forbid"
 
+class ParallelTaskOutput(BaseModel):
+    class Config:
+        extra = "forbid"
+    new_images: Optional[list[SingleImage]] = None
+    edited_images: Optional[list[SingleImage]] = None
+    new_filters: Optional[FilterSet] = None
+
 
 class Dataset(BaseModel):
     id: Optional[int] = None

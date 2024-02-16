@@ -6,6 +6,7 @@ from images import find_image_by_path
 from models import SingleImage
 from models import Task
 from models import TaskOutput
+from models import ParallelTaskOutput
 from utils import pjson
 
 
@@ -45,8 +46,7 @@ def _run_parallel_task(
             new_old_image_mapping.update(
                 {new_image["path"]: function_kwargs["path"] for new_image in task_output["new_images"]}
             )
-        # FIXME Yuri: create strict ParalleTaskOutput, without buffer and parallelization_list
-        TaskOutput(**task_output)
+        ParallelTaskOutput(**task_output)
         task_outputs.append(copy(task_output))
 
     # Merge processed images # FIXME
