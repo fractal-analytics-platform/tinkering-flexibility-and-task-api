@@ -129,7 +129,8 @@ def apply_workflow(
                             **wftask.args,
                         )
                     )
-                    # FIXME use "set" on the final list
+                # TODO: can we avoid this deduplicate operation?
+                list_function_kwargs = _deduplicate_list_of_dicts(list_function_kwargs)
 
                 filtered_images = [
                     find_image_by_path(images=tmp_dataset.images, path=kwargs["path"])
