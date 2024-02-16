@@ -76,7 +76,8 @@ def merge_outputs(
         for edited_image in task_output.get("edited_images", []):
             final_edited_images.append(edited_image)
 
-        if new_filters := task_output.get("new_filters"):
+        new_filters = task_output.get("new_filters")
+        if new_filters:
             if final_new_filters is None:
                 final_new_filters = new_filters
             else:
