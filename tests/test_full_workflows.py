@@ -81,27 +81,6 @@ WORKFLOWS = [
             WorkflowTask(task=TASK_LIST["yokogawa_to_zarr"], args={}),
             WorkflowTask(
                 task=TASK_LIST["illumination_correction"],
-                args={},
-            ),
-            WorkflowTask(
-                task=TASK_LIST["cellpose_segmentation"],
-                args={},
-            ),
-            WorkflowTask(
-                task=TASK_LIST["new_ome_zarr"],
-                args={"suffix": "mip"},
-            ),
-        ],
-    ),
-    Workflow(
-        task_list=[
-            WorkflowTask(
-                task=TASK_LIST["create_ome_zarr"],
-                args=dict(image_dir="/tmp/input_images"),
-            ),
-            WorkflowTask(task=TASK_LIST["yokogawa_to_zarr"], args={}),
-            WorkflowTask(
-                task=TASK_LIST["illumination_correction"],
                 args=dict(overwrite_input=True),
             ),
         ],
