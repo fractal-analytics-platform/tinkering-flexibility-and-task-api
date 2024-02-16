@@ -5,8 +5,8 @@ from env import MAX_PARALLELIZATION_LIST_SIZE
 from images import find_image_by_path
 from models import SingleImage
 from models import Task
-from models import TaskOutput
-from models import ParallelTaskOutput
+from task_output import TaskOutput
+from task_output import ParallelTaskOutput
 from utils import pjson
 
 
@@ -39,9 +39,9 @@ def _run_parallel_task(
     task_outputs = []
     new_old_image_mapping = {}
     for function_kwargs in list_function_kwargs:
-        task_output = task.function(**function_kwargs)
-        if task_output is None:
-            task_output = {}
+        
+        task_output = task.function(**function_kwargs) or {}
+
         if task_output.get("new_images") is not None:
             new_old_image_mapping.update(
                 {
@@ -49,8 +49,25 @@ def _run_parallel_task(
                     for new_image in task_output["new_images"]
                 }
             )
+
         ParallelTaskOutput(**task_output)
         task_outputs.append(copy(task_output))
+
+    task_output = merge_outputs(
+        task_outputs,
+        new_old_image_mapping,
+        old_dataset_images,
+    )
+
+    return task_output
+
+
+
+def merge_outputs(
+        task_outputs: list[ParallelTaskOutput],
+        new_old_image_mapping: dict[str, str],
+        old_dataset_images: list[SingleImage],
+    ):
 
     # Merge processed images # FIXME
     task_output = {}
@@ -61,6 +78,7 @@ def _run_parallel_task(
     # Merge new/edited images
     _new_images = []
     _edited_images = []
+    
     for _out in task_outputs:
         for new_image in _out.get("new_images", []):
             # Propagate old-image attributes to new-image
