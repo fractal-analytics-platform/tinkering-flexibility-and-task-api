@@ -118,9 +118,10 @@ def apply_workflow(
                     )
             else:
                 # Use pre-made parallelization_list
-                list_function_kwargs = parallelization_list
-                for ind, _ in enumerate(list_function_kwargs):
-                    # FIXME: error or warning in case of overlapping keys
+                list_function_kwargs = deepcopy(parallelization_list)
+                for ind, kwargs in enumerate(list_function_kwargs):
+                    if "root_dir" in kwargs or "buffer" in kwargs:
+                        raise ValueError(f"Invalid {kwargs=}")
                     list_function_kwargs[ind].update(
                         dict(
                             root_dir=tmp_dataset.root_dir,
