@@ -114,7 +114,7 @@ def apply_workflow(
 
                 filtered_images = [
                     find_image_by_path(
-                        images=tmp_dataset.images,
+                        images=tmp_dataset.parallelization_list,
                         path=kwargs["path"]
                     )
                     for kwargs in list_function_kwargs
