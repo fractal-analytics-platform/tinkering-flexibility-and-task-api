@@ -2,8 +2,8 @@
 # image = {"path": "/tmp/asasd", "dimensions": 3}
 # Example filters
 # filters = {"dimensions": 2, "illumination_corrected": False}
-from typing import Union
 from copy import copy
+from typing import Union
 
 
 ImageAttribute = Union[str, bool, int, None]  # a scalar JSON object
@@ -14,11 +14,22 @@ def find_image_by_path(
     *,
     images: list[SingleImage],
     path: str,
-):
+) -> SingleImage:
+    """
+    Return a copy of the image with a given path, from a list.
+
+    Args:
+        images: List of images.
+        path: Path that the returned image must have.
+
+    Returns:
+        The first image from `images` which has path equal to `path`.
+    """
     try:
-        return copy(next(image for image in images if image["path"] == path))
+        image = next(image for image in images if image["path"] == path)
+        return copy(image)
     except StopIteration:
-        raise ValueError(f"No image with {path=} found.")
+        raise ValueError(f"No image with {path=} found in image list.")
 
 
 def _deduplicate_image_list(
