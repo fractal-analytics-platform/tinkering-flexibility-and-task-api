@@ -33,7 +33,7 @@ class Dataset(BaseModel):
 class Task(BaseModel):
     function: Callable  # mock of task.command
     meta: dict[str, Any] = Field(default_factory=dict)
-    new_filters: FilterSet = Field(default_factory=dict)  # FIXME: this is wrong!
+    new_filters: dict[str, Any] = Field(default_factory=dict)  # FIXME: this is not using FilterSet any more!
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
 
     @property
