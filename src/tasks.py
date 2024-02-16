@@ -185,16 +185,20 @@ def new_ome_zarr(
     Path(zarr_path).mkdir()
 
     # Create well/image OME-Zarr for the new copy
-    image_relative_paths = ["A/01/0", "A/02/0"]
+    image_relative_paths = [path.lstrip(new_plate_zarr_name).lstrip("/") for path in paths]
     for image_relative_path in image_relative_paths:
         (Path(zarr_path) / image_relative_path).mkdir(parents=True)
+
+    new_filters = dict(plate=new_plate_zarr_name)
+    if project_to_2D:
+        new_filters["data_dimensionality"] = "2"
 
     # Prepare output metadata
     out = dict(
         new_images=[
             dict(path=f"{new_plate_zarr_name}/{image_relative_path}") for image_relative_path in image_relative_paths
         ],
-        new_filters=dict(plate=new_plate_zarr_name),
+        new_filters=new_filters,
         buffer=dict(
             new_ome_zarr=dict(
                 old_plate=shared_plate,
