@@ -91,7 +91,9 @@ def merge_outputs(
         final_output["edited_images"] = final_edited_images
     if final_new_filters:
         final_output["new_filters"] = final_new_filters
-    ParallelTaskOutput(**final_output)
+
+    # Validate output:
+    TaskOutput(**final_output)
 
     print(f"Merged task output:\n{pjson(final_output)}")
 
