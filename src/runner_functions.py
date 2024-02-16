@@ -97,12 +97,15 @@ def merge_outputs(
                         f"{new_filters=} but {final_new_filters=}"
                     )
 
-    final_output = dict(
-        new_images = final_new_images or None,
-        edited_images = final_edited_images or None,
-        new_filters = final_new_filters,
-    )
+    final_output = dict()
+    if final_new_images:
+        final_output["new_images"] = final_new_images
+    if final_edited_images:
+        final_output["edited_images"] = final_edited_images
+    if final_new_filters:
+        final_output["new_filters"] = final_new_filters
     ParallelTaskOutput(**final_output)
+    
     print(f"Merged task output:\n{pjson(final_output)}")
 
     return final_output
