@@ -44,7 +44,10 @@ def _run_parallel_task(
             task_output = {}
         if task_output.get("new_images") is not None:
             new_old_image_mapping.update(
-                {new_image["path"]: function_kwargs["path"] for new_image in task_output["new_images"]}
+                {
+                    new_image["path"]: function_kwargs["path"]
+                    for new_image in task_output["new_images"]
+                }
             )
         ParallelTaskOutput(**task_output)
         task_outputs.append(copy(task_output))
