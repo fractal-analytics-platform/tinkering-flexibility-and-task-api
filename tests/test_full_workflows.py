@@ -134,9 +134,15 @@ def test_workflow_2(tmp_path: Path):
     ]
 
 
-WORKFLOWS = [
-    Workflow(
-        task_list=[
+def test_workflow_3(tmp_path: Path):
+    """
+    1. create-ome-zarr + yokogawa-to-zarr
+    2. illumination correction (overwrite_input=True) on a single well
+    """
+    root_dir = (tmp_path / "root_dir").as_posix()
+    dataset_in = Dataset(id=1, root_dir=root_dir)
+    dataset_out = apply_workflow(
+        wf_task_list=[
             WorkflowTask(
                 task=TASK_LIST["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
@@ -148,7 +154,41 @@ WORKFLOWS = [
                 filters=dict(well="A_01"),
             ),
         ],
-    ),
+        dataset=dataset_in,
+    )
+
+    debug(dataset_out)
+    assert dataset_out.history == [
+        "create_ome_zarr",
+        "yokogawa_to_zarr",
+        "illumination_correction",
+    ]
+
+    debug(dataset_out.filters)
+    assert dataset_out.filters == {
+        "plate": "my_plate.zarr",
+        "data_dimensionality": "3",
+        "illumination_correction": True,
+    }
+    debug(dataset_out.images)
+    assert dataset_out.images == [
+        {
+            "path": "my_plate.zarr/A/01/0",
+            "well": "A_01",
+            "plate": "my_plate.zarr",
+            "data_dimensionality": "3",
+            "illumination_correction": True,
+        },
+        {
+            "path": "my_plate.zarr/A/02/0",
+            "well": "A_02",
+            "plate": "my_plate.zarr",
+            "data_dimensionality": "3",
+        },
+    ]
+
+
+WORKFLOWS = [
     Workflow(
         task_list=[
             WorkflowTask(
