@@ -2,7 +2,7 @@ from devtools import debug
 from models import Dataset
 from models import Task
 from models import WorkflowTask
-from runner import apply_workflow
+from runner import execute_tasks_v2
 
 from tests.tasks_for_tests import create_images_from_scratch
 from tests.tasks_for_tests import print_path
@@ -20,7 +20,7 @@ def test_single_non_parallel_task():
             args=dict(new_paths=NEW_PATHS),
         )
     ]
-    dataset_out = apply_workflow(wf_task_list=task_list, dataset=dataset_in)
+    dataset_out = execute_tasks_v2(wf_task_list=task_list, dataset=dataset_in)
     debug(dataset_out.image_paths)
     assert set(dataset_out.image_paths) == set(NEW_PATHS)
 
@@ -37,5 +37,5 @@ def test_single_parallel_task_no_parallization_list():
             )
         )
     ]
-    dataset_out = apply_workflow(wf_task_list=task_list, dataset=dataset_in)
+    dataset_out = execute_tasks_v2(wf_task_list=task_list, dataset=dataset_in)
     debug(dataset_out.image_paths)

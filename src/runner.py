@@ -44,7 +44,7 @@ def _validate_parallelization_list_valid(
             raise ValueError(f"An element in parallelization list is not valid:\n{kwargs=}")
 
 
-def apply_workflow(
+def execute_tasks_v2(
     wf_task_list: list[WorkflowTask],
     dataset: Dataset,
 ) -> Dataset:

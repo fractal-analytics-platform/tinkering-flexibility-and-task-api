@@ -7,7 +7,7 @@ from env import MAX_PARALLELIZATION_LIST_SIZE
 from models import Dataset
 from models import Task
 from models import WorkflowTask
-from runner import apply_workflow
+from runner import execute_tasks_v2
 
 from tests.tasks_for_tests import dummy_task
 
@@ -37,10 +37,10 @@ def test_max_parallelization_list_size(N: int):
     ]
     if N < MAX_PARALLELIZATION_LIST_SIZE:
         debug(N, "OK")
-        apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+        execute_tasks_v2(wf_task_list=wf_task_list, dataset=dataset)
     else:
         with pytest.raises(ValueError) as e:
-            apply_workflow(wf_task_list=wf_task_list, dataset=dataset)
+            execute_tasks_v2(wf_task_list=wf_task_list, dataset=dataset)
         debug(N, str(e.value))
 
 
@@ -89,7 +89,7 @@ def test_image_attribute_propagation(
             ),
         )
     ]
-    dataset_post = apply_workflow(wf_task_list=wf_task_list, dataset=dataset_pre)
+    dataset_post = execute_tasks_v2(wf_task_list=wf_task_list, dataset=dataset_pre)
     images_post = dataset_post.images
 
     debug(images_pre)

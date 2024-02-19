@@ -6,7 +6,7 @@ from images import find_image_by_path
 from models import Dataset
 from models import Workflow
 from models import WorkflowTask
-from runner import apply_workflow
+from runner import execute_tasks_v2
 from tasks import TASK_LIST
 
 
@@ -18,7 +18,7 @@ def test_workflow_1(tmp_path: Path):
     """
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset_in = Dataset(id=1, root_dir=root_dir)
-    dataset_out = apply_workflow(
+    dataset_out = execute_tasks_v2(
         wf_task_list=[
             WorkflowTask(
                 task=TASK_LIST["create_ome_zarr"],
@@ -88,7 +88,7 @@ def test_workflow_2(tmp_path: Path):
     """
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset_in = Dataset(id=1, root_dir=root_dir)
-    dataset_out = apply_workflow(
+    dataset_out = execute_tasks_v2(
         wf_task_list=[
             WorkflowTask(
                 task=TASK_LIST["create_ome_zarr"],
@@ -141,7 +141,7 @@ def test_workflow_3(tmp_path: Path):
     """
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset_in = Dataset(id=1, root_dir=root_dir)
-    dataset_out = apply_workflow(
+    dataset_out = execute_tasks_v2(
         wf_task_list=[
             WorkflowTask(
                 task=TASK_LIST["create_ome_zarr"],
@@ -278,4 +278,4 @@ WORKFLOWS = [
 def test_full_workflows(workflow: Workflow, tmp_path: Path):
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset = Dataset(id=1, root_dir=root_dir)
-    apply_workflow(wf_task_list=workflow.task_list, dataset=dataset)
+    execute_tasks_v2(wf_task_list=workflow.task_list, dataset=dataset)

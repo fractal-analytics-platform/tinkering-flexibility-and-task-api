@@ -3,7 +3,7 @@ import shutil
 import sys
 
 from models import Dataset
-from runner import apply_workflow
+from runner import execute_tasks_v2
 from workflows import WORKFLOWS
 
 
@@ -20,4 +20,4 @@ if __name__ == "__main__":
         if os.path.isdir(dataset.root_dir):
             shutil.rmtree(dataset.root_dir)
 
-        apply_workflow(wf_task_list=WF.task_list, dataset=dataset)
+        execute_tasks_v2(wf_task_list=WF.task_list, dataset=dataset)
