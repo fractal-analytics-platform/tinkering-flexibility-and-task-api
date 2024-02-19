@@ -51,10 +51,10 @@ class ParallelTaskOutput(BaseModel):
 
 
 def merge_outputs(
-    task_outputs: list[ParallelTaskOutput],
+    task_outputs: list[dict],  # Actually list[ParallelTaskOutput]
     new_old_image_mapping: dict[str, str],
     old_dataset_images: list[SingleImage],
-):
+) -> dict:  # Actually TaskOutput
 
     final_new_images = []
     final_edited_images = []
