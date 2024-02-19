@@ -303,18 +303,23 @@ def create_ome_zarr_multiplex(
 
     # Create well/image OME-Zarr folders on disk
     image_relative_paths = [f"{well}/{cycle}" for well in ["A/01", "A/02"] for cycle in ["0", "1", "2"]]
+    acquisitions = [str(cycle) for well in ["A/01", "A/02"] for cycle in ["0", "1", "2"]]
+
     for image_relative_path in image_relative_paths:
         (Path(zarr_path) / image_relative_path).mkdir(parents=True)
 
     # Prepare output metadata
-    out = dict(
-        new_images=[
+    new_images = []
+    for ind, image_relative_path in enumerate(image_relative_paths):
+        new_images.append(
             dict(
                 path=f"{plate_zarr_name}/{image_relative_path}",
                 well="_".join(image_relative_path.split("/")[:2]),
+                acquisition=acquisitions[ind],
             )
-            for image_relative_path in image_relative_paths
-        ],
+        )
+    out = dict(
+        new_images=new_images,
         buffer=dict(
             image_raw_paths={
                 f"{plate_zarr_name}/A/01/0": f"{image_dir}/figure_A01_0.tif",
