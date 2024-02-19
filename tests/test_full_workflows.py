@@ -11,6 +11,11 @@ from tasks import TASK_LIST
 
 
 def test_workflow_1(tmp_path: Path):
+    """
+    1. create-ome-zarr + yokogawa-to-zarr
+    2. illumination correction (new images)
+    3. new_ome_zarr + MIP
+    """
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset_in = Dataset(id=1, root_dir=root_dir)
     dataset_out = apply_workflow(
@@ -34,7 +39,12 @@ def test_workflow_1(tmp_path: Path):
         dataset=dataset_in,
     )
 
-    debug(dataset_out.history)
+    assert dataset_out.filters == {
+        "plate": "my_plate_mip.zarr",
+        "data_dimensionality": "2",
+        "illumination_correction": True,
+    }
+
     assert dataset_out.history == [
         "create_ome_zarr",
         "yokogawa_to_zarr",
@@ -72,6 +82,10 @@ def test_workflow_1(tmp_path: Path):
 
 
 def test_workflow_2(tmp_path: Path):
+    """
+    1. create-ome-zarr + yokogawa-to-zarr
+    2. illumination correction (overwrite_input=True)
+    """
     root_dir = (tmp_path / "root_dir").as_posix()
     dataset_in = Dataset(id=1, root_dir=root_dir)
     dataset_out = apply_workflow(
