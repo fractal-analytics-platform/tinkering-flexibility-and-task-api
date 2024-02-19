@@ -1,4 +1,4 @@
-from filters import _filter_image_list
+from images import _filter_image_list
 
 images = [
     dict(

@@ -1,10 +1,9 @@
 from typing import Any
 from typing import Optional
 
-from filters import FilterSet
 from images import find_image_by_path
+from images import ScalarDict
 from images import SingleImage
-from models import KwargsType
 from pydantic import BaseModel
 from utils import pjson
 
@@ -16,7 +15,7 @@ class TaskOutput(BaseModel):
     edited_images: Optional[list[SingleImage]] = None
     """List of images edited by a given task instance."""
 
-    new_filters: Optional[FilterSet] = None  # FIXME: this does not actually work in Pydantic
+    new_filters: Optional[ScalarDict] = None  # FIXME: this does not actually work in Pydantic
     """
     *Global* filters (common to all images) added by this task.
 
@@ -31,7 +30,7 @@ class TaskOutput(BaseModel):
     companion task.
     """
 
-    parallelization_list: Optional[list[KwargsType]] = None
+    parallelization_list: Optional[list[ScalarDict]] = None
     """
     Used in the output of an init task, to expose customizable parallelization
     of the companion task.
@@ -47,7 +46,7 @@ class ParallelTaskOutput(BaseModel):
 
     new_images: Optional[list[SingleImage]] = None
     edited_images: Optional[list[SingleImage]] = None
-    new_filters: Optional[FilterSet] = None  # FIXME
+    new_filters: Optional[ScalarDict] = None  # FIXME
 
 
 def merge_outputs(

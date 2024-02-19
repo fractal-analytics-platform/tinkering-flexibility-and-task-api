@@ -1,8 +1,8 @@
 from copy import copy
 from copy import deepcopy
 
-from filters import filter_images
-from filters import FilterSet
+from images import filter_images
+from images import ScalarDict
 from images import _deduplicate_list_of_dicts
 from images import find_image_by_path
 from images import SingleImage
@@ -22,7 +22,7 @@ from utils import ipjson
 def _apply_attributes_to_image(
     *,
     image: SingleImage,
-    filters: FilterSet,
+    filters: ScalarDict,
 ) -> SingleImage:
     updated_image = copy(image)
     for key, value in filters.items():
