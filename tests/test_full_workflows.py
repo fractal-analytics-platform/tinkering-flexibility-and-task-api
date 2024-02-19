@@ -71,9 +71,11 @@ def test_workflow_1(tmp_path: Path):
     }
 
 
-WORKFLOWS = [
-    Workflow(
-        task_list=[
+def test_workflow_2(tmp_path: Path):
+    root_dir = (tmp_path / "root_dir").as_posix()
+    dataset_in = Dataset(id=1, root_dir=root_dir)
+    dataset_out = apply_workflow(
+        wf_task_list=[
             WorkflowTask(
                 task=TASK_LIST["create_ome_zarr"],
                 args=dict(image_dir="/tmp/input_images"),
@@ -84,7 +86,41 @@ WORKFLOWS = [
                 args=dict(overwrite_input=True),
             ),
         ],
-    ),
+        dataset=dataset_in,
+    )
+
+    assert dataset_out.history == [
+        "create_ome_zarr",
+        "yokogawa_to_zarr",
+        "illumination_correction",
+    ]
+
+    debug(dataset_out.filters)
+    assert dataset_out.filters == {
+        "plate": "my_plate.zarr",
+        "data_dimensionality": "3",
+        "illumination_correction": True,
+    }
+    debug(dataset_out.images)
+    assert dataset_out.images == [
+        {
+            "path": "my_plate.zarr/A/01/0",
+            "well": "A_01",
+            "plate": "my_plate.zarr",
+            "data_dimensionality": "3",
+            "illumination_correction": True,
+        },
+        {
+            "path": "my_plate.zarr/A/02/0",
+            "well": "A_02",
+            "plate": "my_plate.zarr",
+            "data_dimensionality": "3",
+            "illumination_correction": True,
+        },
+    ]
+
+
+WORKFLOWS = [
     Workflow(
         task_list=[
             WorkflowTask(
