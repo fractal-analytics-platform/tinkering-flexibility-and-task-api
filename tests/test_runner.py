@@ -4,6 +4,8 @@ from typing import Optional
 import pytest
 from devtools import debug
 from env import MAX_PARALLELIZATION_LIST_SIZE
+from images import ScalarDict
+from images import SingleImage
 from models import Dataset
 from models import Task
 from models import WorkflowTask
@@ -50,9 +52,9 @@ def _copy_and_edit_image(
     buffer: dict[str, Any],
 ) -> dict[str, Any]:
     new_images = [
-        dict(
+        SingleImage(
             path=f"{path}_new",
-            processed=True,
+            attributes=ScalarDict(processed=True),
         )
     ]
     return dict(new_images=new_images)
@@ -71,16 +73,27 @@ def _copy_and_edit_image(
 def test_image_attribute_propagation(
     parallelization_list: Optional[list[dict]],
 ):
+    from images import SingleImage
+    from images import ScalarDict
+
     images_pre = [
-        dict(path="plate.zarr/A/01/0", plate="plate.zarr", well="A/01"),
-        dict(path="plate.zarr/A/02/0", plate="plate.zarr", well="A/02"),
+        SingleImage(
+            path="plate.zarr/A/01/0",
+            attributes=ScalarDict(plate="plate.zarr", well="A/01"),
+        ),
+        SingleImage(
+            path="plate.zarr/A/02/0",
+            attributes=ScalarDict(plate="plate.zarr", well="A/02"),
+        ),
     ]
+
     dataset_pre = Dataset(
         id=1,
         root_dir="/tmp/invalid",
         images=images_pre,
         parallelization_list=parallelization_list,
     )
+
     wf_task_list = [
         WorkflowTask(
             task=Task(
