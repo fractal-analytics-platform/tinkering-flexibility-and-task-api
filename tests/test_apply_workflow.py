@@ -15,7 +15,7 @@ def test_single_non_parallel_task():
         WorkflowTask(
             task=Task(
                 task_type="non_parallel",
-                _function=create_images_from_scratch,
+                function=create_images_from_scratch,
             ),
             args=dict(new_paths=NEW_PATHS),
         )
@@ -33,7 +33,7 @@ def test_single_parallel_task_no_parallization_list():
         WorkflowTask(
             task=Task(
                 task_type="parallel",
-                _function=print_path,
+                function=print_path,
             )
         )
     ]

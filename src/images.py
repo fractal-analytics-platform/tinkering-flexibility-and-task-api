@@ -1,22 +1,23 @@
 from copy import copy
-from typing import Union
 from typing import Optional
+from typing import Union
+
 from pydantic import BaseModel
 from pydantic import Field
-from utils import ipjson, pjson
+from utils import ipjson
+from utils import pjson
 
 ImageAttribute = Union[str, bool, int, None]  # a scalar JSON object
+
 
 def check_key_value(key, value):
     if not isinstance(key, str):
         raise TypeError("Key must be a string")
     if not isinstance(value, (int, float, str, bool, type(None))):
-        raise ValueError(
-            "Value must be a scalar (int, float, str, bool, or None)"
-        )
-    
+        raise ValueError("Value must be a scalar (int, float, str, bool, or None)")
+
+
 class ScalarDict(dict):
-    
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             check_key_value(key=key, value=value)
@@ -25,6 +26,7 @@ class ScalarDict(dict):
     def __setitem__(self, key, value):
         check_key_value(key=key, value=value)
         super().__setitem__(key, value)
+
 
 class SingleImage(BaseModel):
     path: str
@@ -37,7 +39,8 @@ class SingleImage(BaseModel):
             if self.attributes.get(key) != value:
                 return False
         return True
-    
+
+
 def find_image_by_path(
     *,
     images: list[SingleImage],
@@ -96,11 +99,11 @@ def filter_images(
     current_filters.update(wftask_filters)
     print(f"[filter_images] Dataset filters:\n{ipjson(dataset_filters)}")
     print(f"[filter_images] WorkflowTask filters:\n{ipjson(wftask_filters)}")
-    print(f"[filter_images] Dataset images:\n{ipjson(dataset_images)}")
+    print(f"[filter_images] Dataset images:\n{ipjson([img.dict() for img in dataset_images])}")
     print(f"[filter_images] Current selection filters:\n{ipjson(current_filters)}")
     filtered_images = _filter_image_list(
         dataset_images,
         filters=current_filters,
     )
-    print(f"[filter_images] Filtered image list:  {pjson(filtered_images)}")
+    print(f"[filter_images] Filtered image list:  {pjson([img.dict() for img in filtered_images])}")
     return filtered_images

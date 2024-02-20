@@ -38,6 +38,7 @@ def test_workflow_1(tmp_path: Path):
         ],
         dataset=dataset_in,
     )
+    debug(dataset_out)
 
     assert dataset_out.filters == {
         "plate": "my_plate_mip.zarr",
@@ -63,12 +64,14 @@ def test_workflow_1(tmp_path: Path):
         "my_plate_mip.zarr/A/02/0_corr",
     }
     img = find_image_by_path(path="my_plate.zarr/A/01/0_corr", images=dataset_out.images)
-    assert img == {
+    assert img.dict() == {
         "path": "my_plate.zarr/A/01/0_corr",
-        "well": "A_01",
-        "plate": "my_plate.zarr",
-        "data_dimensionality": "3",
-        "illumination_correction": True,
+        "attributes": {
+            "well": "A_01",
+            "plate": "my_plate.zarr",
+            "data_dimensionality": "3",
+            "illumination_correction": True,
+        },
     }
 
     img = find_image_by_path(path="my_plate_mip.zarr/A/01/0_corr", images=dataset_out.images)

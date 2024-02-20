@@ -31,7 +31,7 @@ def test_max_parallelization_list_size(N: int):
         WorkflowTask(
             task=Task(
                 task_type="parallel",
-                _function=dummy_task,
+                function=dummy_task,
             ),
         )
     ]
@@ -85,7 +85,7 @@ def test_image_attribute_propagation(
         WorkflowTask(
             task=Task(
                 task_type="parallel",
-                _function=_copy_and_edit_image,
+                function=_copy_and_edit_image,
             ),
         )
     ]

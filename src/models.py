@@ -8,7 +8,6 @@ from images import SingleImage
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import validator
-from task_output import TaskOutput
 
 KwargsType = dict[str, Any]
 
@@ -28,17 +27,17 @@ class Dataset(BaseModel):
 
     @property
     def image_paths(self) -> list[str]:
-        return [image["path"] for image in self.images]
+        return [image.path for image in self.images]
 
 
 class Task(BaseModel):
-    _function: Callable  # mock of task.command
+    function: Callable  # mock of task.command
     meta: dict[str, Any] = Field(default_factory=dict)
     new_filters: dict[str, Any] = Field(default_factory=dict)  # FIXME: this is not using ScalarDict any more!
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
-    
-    def function(self, **kwargs):
-        return TaskOutput(self._function(**kwargs))
+
+    def callable(self, **kwargs):
+        return self.function(**kwargs)
 
     @validator("new_filters")
     def scalar_filters(cls, v):
