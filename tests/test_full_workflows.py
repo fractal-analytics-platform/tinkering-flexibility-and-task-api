@@ -3,6 +3,8 @@ from pathlib import Path
 import pytest
 from devtools import debug
 from images import find_image_by_path
+from images import ScalarDict
+from images import SingleImage
 from models import Dataset
 from models import Workflow
 from models import WorkflowTask
@@ -38,6 +40,7 @@ def test_workflow_1(tmp_path: Path):
         ],
         dataset=dataset_in,
     )
+    debug(dataset_out)
 
     assert dataset_out.filters == {
         "plate": "my_plate_mip.zarr",
@@ -63,22 +66,26 @@ def test_workflow_1(tmp_path: Path):
         "my_plate_mip.zarr/A/02/0_corr",
     }
     img = find_image_by_path(path="my_plate.zarr/A/01/0_corr", images=dataset_out.images)
-    assert img == {
-        "path": "my_plate.zarr/A/01/0_corr",
-        "well": "A_01",
-        "plate": "my_plate.zarr",
-        "data_dimensionality": "3",
-        "illumination_correction": True,
-    }
+    assert img == SingleImage(
+        path="my_plate.zarr/A/01/0_corr",
+        attributes=ScalarDict(
+            well="A_01",
+            plate="my_plate.zarr",
+            data_dimensionality="3",
+            illumination_correction=True,
+        ),
+    )
 
     img = find_image_by_path(path="my_plate_mip.zarr/A/01/0_corr", images=dataset_out.images)
-    assert img == {
-        "path": "my_plate_mip.zarr/A/01/0_corr",
-        "well": "A_01",
-        "plate": "my_plate_mip.zarr",
-        "data_dimensionality": "2",
-        "illumination_correction": True,
-    }
+    assert img == SingleImage(
+        path="my_plate_mip.zarr/A/01/0_corr",
+        attributes=ScalarDict(
+            well="A_01",
+            plate="my_plate_mip.zarr",
+            data_dimensionality="2",
+            illumination_correction=True,
+        ),
+    )
 
 
 def test_workflow_2(tmp_path: Path):
@@ -110,27 +117,31 @@ def test_workflow_2(tmp_path: Path):
     ]
 
     debug(dataset_out.filters)
-    assert dataset_out.filters == {
-        "plate": "my_plate.zarr",
-        "data_dimensionality": "3",
-        "illumination_correction": True,
-    }
+    assert dataset_out.filters == ScalarDict(
+        plate="my_plate.zarr",
+        data_dimensionality="3",
+        illumination_correction=True,
+    )
     debug(dataset_out.images)
     assert dataset_out.images == [
-        {
-            "path": "my_plate.zarr/A/01/0",
-            "well": "A_01",
-            "plate": "my_plate.zarr",
-            "data_dimensionality": "3",
-            "illumination_correction": True,
-        },
-        {
-            "path": "my_plate.zarr/A/02/0",
-            "well": "A_02",
-            "plate": "my_plate.zarr",
-            "data_dimensionality": "3",
-            "illumination_correction": True,
-        },
+        SingleImage(
+            path="my_plate.zarr/A/01/0",
+            attributes=ScalarDict(
+                well="A_01",
+                plate="my_plate.zarr",
+                data_dimensionality="3",
+                illumination_correction=True,
+            ),
+        ),
+        SingleImage(
+            path="my_plate.zarr/A/02/0",
+            attributes=ScalarDict(
+                well="A_02",
+                plate="my_plate.zarr",
+                data_dimensionality="3",
+                illumination_correction=True,
+            ),
+        ),
     ]
 
 
@@ -151,7 +162,7 @@ def test_workflow_3(tmp_path: Path):
             WorkflowTask(
                 task=TASK_LIST["illumination_correction"],
                 args=dict(overwrite_input=True),
-                filters=dict(well="A_01"),
+                filters=ScalarDict(well="A_01"),
             ),
         ],
         dataset=dataset_in,
@@ -165,26 +176,30 @@ def test_workflow_3(tmp_path: Path):
     ]
 
     debug(dataset_out.filters)
-    assert dataset_out.filters == {
-        "plate": "my_plate.zarr",
-        "data_dimensionality": "3",
-        "illumination_correction": True,
-    }
+    assert dataset_out.filters == ScalarDict(
+        plate="my_plate.zarr",
+        data_dimensionality="3",
+        illumination_correction=True,
+    )
     debug(dataset_out.images)
     assert dataset_out.images == [
-        {
-            "path": "my_plate.zarr/A/01/0",
-            "well": "A_01",
-            "plate": "my_plate.zarr",
-            "data_dimensionality": "3",
-            "illumination_correction": True,
-        },
-        {
-            "path": "my_plate.zarr/A/02/0",
-            "well": "A_02",
-            "plate": "my_plate.zarr",
-            "data_dimensionality": "3",
-        },
+        SingleImage(
+            path="my_plate.zarr/A/01/0",
+            attributes=ScalarDict(
+                well="A_01",
+                plate="my_plate.zarr",
+                data_dimensionality="3",
+                illumination_correction=True,
+            ),
+        ),
+        SingleImage(
+            path="my_plate.zarr/A/02/0",
+            attributes=ScalarDict(
+                well="A_02",
+                plate="my_plate.zarr",
+                data_dimensionality="3",
+            ),
+        ),
     ]
 
 

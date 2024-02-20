@@ -50,11 +50,12 @@ def create_ome_zarr(
         (Path(zarr_path) / image_relative_path).mkdir(parents=True)
 
     # Prepare output metadata
+
     out = dict(
         new_images=[
             dict(
                 path=f"{plate_zarr_name}/{image_relative_path}",
-                well="_".join(image_relative_path.split("/")[:2]),
+                attributes=dict(well="_".join(image_relative_path.split("/")[:2])),
             )
             for image_relative_path in image_relative_paths
         ],
@@ -70,6 +71,7 @@ def create_ome_zarr(
         ),
     )
     print("[create_ome_zarr] END")
+
     return out
 
 
@@ -114,6 +116,7 @@ def illumination_correction(
     subsets: Optional[dict[Literal["T_index", "C_index", "Z_index"], int]] = None,
     overwrite_input: bool = False,
 ) -> dict:
+
     print("[illumination_correction] START")
     print(f"[illumination_correction] {root_dir=}")
     print(f"[illumination_correction] {path=}")
@@ -314,8 +317,10 @@ def create_ome_zarr_multiplex(
         new_images.append(
             dict(
                 path=f"{plate_zarr_name}/{image_relative_path}",
-                well="_".join(image_relative_path.split("/")[:2]),
-                acquisition=acquisitions[ind],
+                attributes=dict(
+                    well="_".join(image_relative_path.split("/")[:2]),
+                    acquisition=acquisitions[ind],
+                ),
             )
         )
     out = dict(
