@@ -36,9 +36,6 @@ class Task(BaseModel):
     new_filters: dict[str, Any] = Field(default_factory=dict)  # FIXME: this is not using ScalarDict any more!
     task_type: Literal["non_parallel", "parallel"] = "non_parallel"
 
-    def callable(self, **kwargs):
-        return self.function(**kwargs)
-
     @validator("new_filters")
     def scalar_filters(cls, v):
         """

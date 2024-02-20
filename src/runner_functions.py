@@ -17,7 +17,7 @@ def _run_non_parallel_task(
     old_dataset_images: list[SingleImage],
 ) -> dict[str, Any]:
 
-    task_output = task.callable(**function_kwargs)
+    task_output = task.function(**function_kwargs)
     if task_output is None:
         return TaskOutput()
 
@@ -66,7 +66,7 @@ def _run_parallel_task(
     new_old_image_mapping = {}
     for function_kwargs in list_function_kwargs:
 
-        task_output = task.callable(**function_kwargs)
+        task_output = task.function(**function_kwargs)
         if task_output is not None:
             task_output = ParallelTaskOutput(**{k: v for k, v in task_output.items() if v is not None})
             if task_output.new_images is not None:
