@@ -97,14 +97,14 @@ def test_image_attribute_propagation(
 
     for image in images_post:
         print(f"Now validate {image}")
-        if image["path"] == "plate.zarr/A/01/0_new":
-            assert image["processed"] is True
-            assert image["plate"] == "plate.zarr"
-            assert image["well"] == "A/01"
-        elif image["path"] == "plate.zarr/A/02/0_new":
-            assert image["processed"] is True
-            assert image["plate"] == "plate.zarr"
-            assert image["well"] == "A/02"
+        if image.path == "plate.zarr/A/01/0_new":
+            assert image.attributes["processed"] is True
+            assert image.attributes["plate"] == "plate.zarr"
+            assert image.attributes["well"] == "A/01"
+        elif image.path == "plate.zarr/A/02/0_new":
+            assert image.attributes["processed"] is True
+            assert image.attributes["plate"] == "plate.zarr"
+            assert image.attributes["well"] == "A/02"
         else:
-            assert image["plate"] == "plate.zarr"
-            assert "processed" not in image.keys()
+            assert image.attributes["plate"] == "plate.zarr"
+            assert "processed" not in image.attributes.keys()
